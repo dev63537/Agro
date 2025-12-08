@@ -1,0 +1,8 @@
+master one :    name = "Master"
+                email = "master@example.com"
+                password = "123456"
+
+
+master two :    name = "Master two"
+                malvidevendr117@gmail.com
+                27_01_2007

@@ -1,0 +1,10 @@
+
+PS D:\A saas test> cd backend 
+PS D:\A saas test\backend> $body = @{
+>>     name = "dev"                                                                                                                                      >>     email = "malvidevendra117@gmail.com"                                                                        password = "27_01_2007"                                                                                                                                  >> } | ConvertTo-Json                                                                                                                                       
+>> 
+>> Invoke-WebRequest -Uri "http://localhost:4000/api/auth/register-master" `
+>>   -Method POST `
+>>   -ContentType "application/json" `
+>>   -Body $body
+>> 
