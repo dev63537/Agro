@@ -26,9 +26,10 @@ import { useAuth } from "./hooks/useAuth";
 const ProtectedRoute = ({ children, role }) => {
   const { user } = useAuth();
 
+  // not logged in
   if (!user) return <Navigate to="/login" replace />;
 
-  // Role check
+  // role check: allow "master" to access everything
   if (role && user.role !== role && user.role !== "master") {
     return <div className="p-6 text-red-600">Forbidden</div>;
   }
@@ -64,16 +65,15 @@ export default function App() {
         }
       />
       <Route
-  path="/master/shops/create"
-  element={
-    <ProtectedRoute role="master">
-      <MasterLayout>
-        <CreateShop />
-      </MasterLayout>
-    </ProtectedRoute>
-  }
-/>
-
+        path="/master/shops/create"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <CreateShop />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Shop Admin */}
       <Route
@@ -118,7 +118,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/shop/stock/new"
         element={

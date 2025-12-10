@@ -1,8 +1,20 @@
-master one :    name = "Master"
-                email = "master@example.com"
-                password = "123456"
+for create maste go in backend and open createmaste.js 
+and give email and password and run code in teminal is :- node .\backend\src\createMaster.js
+  
+  or 
+
+that not work so run this code in terminal 
+   $body = @{
+  name = "Master Dev"
+  email = "malvidevendr117@gmail.com"
+  password = "27_01_2007"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:4000/api/auth/register-master" -Method POST -ContentType "application/json" -Body $body
 
 
-master two :    name = "Master two"
-                malvidevendr117@gmail.com
-                27_01_2007
+
+
+demo shop = email:tirth@gmail.com
+            Password: xe9363yfr
+            

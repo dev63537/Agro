@@ -1,3 +1,4 @@
+// backend\src\controllers\shop.controller.js
 const Shop = require('../models/Shop');
 
 const getShop = async (req, res) => {
