@@ -4,3 +4,4 @@ const calculateGST = (amount, gstPercent) => {
 };
 
 module.exports = { calculateGST };
+  

@@ -6,7 +6,8 @@ export const useSalesReport = () =>
     queryKey: ["shop-sales"],
     queryFn: async () => {
       const res = await api.get("/reports/sales");
-      return res.data;
+      return res.data.data;
+
     },
   });
 

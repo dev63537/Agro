@@ -11,10 +11,14 @@ exports.salesReport = async (req, res) => {
     const total = bills.reduce((sum, b) => sum + b.total, 0);
 
     res.json({
-      total,
-      count: bills.length,
-      bills,
+      success: true,
+      data: {
+        total,
+        count: bills.length,
+        bills,
+      },
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
