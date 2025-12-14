@@ -24,18 +24,28 @@ import ShopLayout from "./layouts/ShopLayout";
 import { useAuth } from "./hooks/useAuth";
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // ✅ WAIT until auth is restored
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-gray-600">
+        Loading...
+      </div>
+    );
+  }
 
   // not logged in
   if (!user) return <Navigate to="/login" replace />;
 
-  // role check: allow "master" to access everything
+  // role check
   if (role && user.role !== role && user.role !== "master") {
     return <div className="p-6 text-red-600">Forbidden</div>;
   }
 
   return children;
 };
+
 
 export default function App() {
   return (

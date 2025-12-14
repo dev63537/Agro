@@ -17,4 +17,8 @@ Invoke-RestMethod -Uri "http://localhost:4000/api/auth/register-master" -Method 
 
 demo shop = email:tirth@gmail.com
             Password: xe9363yfr
+
+
+            Email: malvi@gmail.com
+            Password: 0hha0cpc
             

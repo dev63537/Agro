@@ -1,32 +1,102 @@
-const Bill = require('../models/Bill');
-const StockBatch = require('../models/StockBatch');
-const Farmer = require('../models/Farmer');
+const Bill = require("../models/Bill");
+const Product = require("../models/Product");
+const Farmer = require("../models/Farmer");
+const StockBatch = require("../models/StockBatch");
 
-const salesReport = async (req, res) => {
-  const { from, to } = req.query;
-  const q = { shopId: req.shopId };
-  if (from || to) {
-    q.createdAt = {};
-    if (from) q.createdAt.$gte = new Date(from);
-    if (to) q.createdAt.$lte = new Date(to);
+// 🔹 SALES REPORT
+exports.salesReport = async (req, res) => {
+  try {
+    const bills = await Bill.find({ shop: req.shopId }).sort({ createdAt: -1 });
+
+    const total = bills.reduce((sum, b) => sum + b.total, 0);
+
+    res.json({
+      total,
+      count: bills.length,
+      bills,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const bills = await Bill.find(q).sort({ createdAt: -1 });
-  const total = bills.reduce((s, b) => s + (b.totalAmount || 0), 0);
-  res.json({ total, count: bills.length, bills });
 };
 
-const stockReport = async (req, res) => {
-  const batches = await StockBatch.find({ shopId: req.shopId }).populate('productId');
-  res.json({ batches });
+// 🔹 TOP FARMERS REPORT
+exports.getTopFarmers = async (req, res) => {
+  try {
+    const data = await Bill.aggregate([
+      { $match: { shop: req.shopId } },
+      {
+        $group: {
+          _id: "$farmer",
+          total: { $sum: "$total" },
+        },
+      },
+      { $sort: { total: -1 } },
+      { $limit: 5 },
+    ]);
+
+    const populated = await Farmer.populate(data, {
+      path: "_id",
+      select: "name",
+    });
+
+    res.json(
+      populated.map((f) => ({
+        farmer: f._id,
+        total: f.total,
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const farmerDues = async (req, res) => {
-  const Ledger = require('../models/YearlyLedger');
-  const { year } = req.query;
-  const q = { shopId: req.shopId };
-  if (year) q.year = parseInt(year, 10);
-  const ledgers = await Ledger.find(q).populate('farmerId');
-  res.json({ ledgers });
+// 🔹 LOW STOCK REPORT
+exports.getLowStock = async (req, res) => {
+  try {
+    const data = await StockBatch.aggregate([
+      { $match: { shop: req.shopId } },
+      {
+        $group: {
+          _id: "$product",
+          qty: { $sum: "$qty" },
+        },
+      },
+      { $match: { qty: { $lte: 10 } } },
+    ]);
+
+    const populated = await Product.populate(data, {
+      path: "_id",
+      select: "name",
+    });
+
+    res.json(
+      populated.map((p) => ({
+        name: p._id.name,
+        qty: p.qty,
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-module.exports = { salesReport, stockReport, farmerDues };
+// 🔹 STOCK REPORT
+exports.stockReport = async (req, res) => {
+  try {
+    const data = await StockBatch.find({ shop: req.shopId });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🔹 FARMER DUES REPORT
+exports.farmerDues = async (req, res) => {
+  try {
+    const farmers = await Farmer.find({ shop: req.shopId });
+    res.json(farmers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

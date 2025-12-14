@@ -1,33 +1,29 @@
-// frontend/src/hooks/reports/useReports.js
 import { useQuery } from "@tanstack/react-query";
 import api from "../../lib/apiClient";
 
-// 1️⃣ SALES REPORT
 export const useSalesReport = () =>
   useQuery({
-    queryKey: ["sales-report"],
+    queryKey: ["shop-sales"],
     queryFn: async () => {
       const res = await api.get("/reports/sales");
       return res.data;
-    }
+    },
   });
 
-// 2️⃣ TOP FARMERS
 export const useTopFarmers = () =>
   useQuery({
     queryKey: ["top-farmers"],
     queryFn: async () => {
       const res = await api.get("/reports/farmers/top");
       return res.data;
-    }
+    },
   });
 
-// 3️⃣ LOW STOCK
 export const useLowStock = () =>
   useQuery({
     queryKey: ["low-stock"],
     queryFn: async () => {
       const res = await api.get("/reports/low-stock");
       return res.data;
-    }
+    },
   });

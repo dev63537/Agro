@@ -3,34 +3,58 @@ import SalesChart from "../../components/charts/SalesChart";
 import TopFarmersChart from "../../components/charts/TopFarmersChart";
 import LowStockChart from "../../components/charts/LowStockChart";
 
-import { useSalesReport, useTopFarmers, useLowStock } from "../../hooks/reports/useReports";
+import {
+  useSalesReport,
+  useTopFarmers,
+  useLowStock,
+} from "../../hooks/reports/useReports";
 
 export default function ShopDashboard() {
-  const { data: sales = [] } = useSalesReport();
-  const { data: farmers = [] } = useTopFarmers();
-  const { data: lowStock = [] } = useLowStock();
+  const { data: salesRes } = useSalesReport();
+  const { data: farmersRes } = useTopFarmers();
+  const { data: lowStockRes } = useLowStock();
 
-  // Transform backend format -> chart format
-  const salesData = sales.map((s) => ({
-    date: `Month ${s._id}`,
-    total: s.total
+  // ✅ SAFETY: ALWAYS force arrays
+  const salesBills = Array.isArray(salesRes?.bills)
+    ? salesRes.bills
+    : [];
+
+  const farmers = Array.isArray(farmersRes) ? farmersRes : [];
+  const lowStock = Array.isArray(lowStockRes) ? lowStockRes : [];
+
+  // ✅ Transform safely
+  const salesData = salesBills.map((b) => ({
+    date: new Date(b.createdAt).toLocaleDateString(),
+    total: b.total || 0,
   }));
 
   const farmerData = farmers.map((f) => ({
-    name: f.farmer.name,
-    total: f.total
+    name: f.farmer?.name || "Unknown",
+    total: f.total || 0,
   }));
 
-  const lowData = lowStock.map((l) => ({
-    name: l.name,
-    qty: l.qty
+  const lowStockData = lowStock.map((p) => ({
+    name: p.name || "Unknown",
+    qty: p.qty || 0,
   }));
 
   return (
     <div className="space-y-6">
-      <SalesChart data={salesData} />
-      <TopFarmersChart data={farmerData} />
-      <LowStockChart data={lowData} />
+      <SalesChart
+        data={salesData.length ? salesData : [{ date: "No data", total: 0 }]}
+      />
+      <TopFarmersChart
+        data={
+          farmerData.length ? farmerData : [{ name: "No data", total: 0 }]
+        }
+      />
+      <LowStockChart
+        data={
+          lowStockData.length
+            ? lowStockData
+            : [{ name: "No low stock", qty: 0 }]
+        }
+      />
     </div>
   );
 }
