@@ -6,11 +6,22 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-api.interceptors.request.use((cfg) => {
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
-  return cfg;
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // ✅ ADD SHOP CONTEXT (THIS FIXES YOUR ERROR)
+  if (user?.shopId) {
+    config.headers["x-shop-id"] = user.shopId;
+  }
+
+  return config;
 });
+
 
 api.interceptors.response.use(
   (response) => response,

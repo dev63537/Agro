@@ -38,6 +38,7 @@ const Login = () => {
 
       // persist token (AuthContext might also do this; this is safe redundancy)
       localStorage.setItem("token", res.data.token);
+      console.log("LOGIN RESPONSE:", res.data);
       console.log("NAVIGATING TO DASHBOARD...");
 
       // navigate based on role

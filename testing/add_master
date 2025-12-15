@@ -8,3 +8,8 @@ PS D:\A saas test\backend> $body = @{
 >>   -ContentType "application/json" `
 >>   -Body $body
 >> 
+
+
+After logging in as shop admin, open console and run:
+
+JSON.parse(localStorage.getItem("user"))

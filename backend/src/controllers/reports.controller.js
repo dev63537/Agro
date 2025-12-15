@@ -27,7 +27,7 @@ exports.salesReport = async (req, res) => {
 // 🔹 TOP FARMERS REPORT
 exports.getTopFarmers = async (req, res) => {
   try {
-    const data = await Bill.aggregate([
+    const agg = await Bill.aggregate([
       { $match: { shop: req.shopId } },
       {
         $group: {
@@ -39,21 +39,34 @@ exports.getTopFarmers = async (req, res) => {
       { $limit: 5 },
     ]);
 
-    const populated = await Farmer.populate(data, {
-      path: "_id",
-      select: "name",
+    // fetch farmers separately
+    const farmers = await Farmer.find({
+      _id: { $in: agg.map((a) => a._id) },
+    }).select("name");
+
+    const result = agg.map((a) => {
+      const farmer = farmers.find(
+        (f) => f._id.toString() === a._id.toString()
+      );
+      return {
+        farmer,
+        total: a.total,
+      };
     });
 
-    res.json(
-      populated.map((f) => ({
-        farmer: f._id,
-        total: f.total,
-      }))
-    );
+    res.json({
+      success: true,
+      data: result,
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
 
 // 🔹 LOW STOCK REPORT
 exports.getLowStock = async (req, res) => {
