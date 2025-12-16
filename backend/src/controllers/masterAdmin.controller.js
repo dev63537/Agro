@@ -31,13 +31,43 @@ const createShop = async (req, res) => {
 };
 
 const updateShopStatus = async (req, res) => {
-  const { shopId } = req.params;
-  const { status } = req.body;
-  const shop = await Shop.findById(shopId);
-  if (!shop) return res.status(404).json({ error: 'Shop not found' });
-  shop.status = status;
-  await shop.save();
-  res.json({ shop });
+  try {
+    const { shopId } = req.params;
+    const { status, plan, expiryDate } = req.body;
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    // 🔹 Update status (ACTIVE / SUSPENDED)
+    if (status) {
+      shop.status = status;
+    }
+
+    // 🔹 Update plan (FREE / BASIC / PRO)
+    if (plan) {
+      shop.plan = plan;
+    }
+
+    // 🔹 Update expiry date
+    if (expiryDate) {
+      shop.expiryDate = new Date(expiryDate);
+    }
+
+    await shop.save();
+
+    res.json({
+      message: "Shop updated successfully",
+      shop,
+    });
+  } catch (err) {
+    console.error("Update shop error:", err);
+    res.status(500).json({ error: "Failed to update shop" });
+  }
 };
+
+
+
 
 module.exports = { listShops, createShop, updateShopStatus };

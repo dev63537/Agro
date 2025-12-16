@@ -1,20 +1,37 @@
-const Shop = require('../models/Shop');
+const Shop = require("../models/Shop");
 
-const tenantMiddleware = async (req, res, next) => {
-  // Expect shop id in header for shop-scoped routes
-  const shopId = req.headers['x-shop-id'] || (req.user && req.user.shopId);
-  if (!shopId) {
-    return res.status(400).json({ error: 'Missing x-shop-id header' });
-  }
-  const shop = await Shop.findById(shopId);
-  if (!shop) return res.status(404).json({ error: 'Shop not found' });
+module.exports = async (req, res, next) => {
+  try {
+    const shopId = req.headers["x-shop-id"];
 
-  if (shop.status === 'suspended') {
-    return res.status(403).json({ error: 'Shop suspended. Please contact master admin.' });
+    if (!shopId) {
+      return res.status(400).json({ message: "Missing x-shop-id header" });
+    }
+
+    const shop = await Shop.findById(shopId);
+
+    if (!shop) {
+      return res.status(404).json({ message: "Shop not found" });
+    }
+
+    // 🔐 SAAS RULE 1: suspended shop
+    if (shop.status === "SUSPENDED") {
+      return res.status(403).json({
+        message: "Shop suspended. Please contact admin.",
+      });
+    }
+
+    // 🔐 SAAS RULE 2: expired shop
+    if (shop.expiryDate && new Date(shop.expiryDate) < new Date()) {
+      return res.status(403).json({
+        message: "Subscription expired. Please renew.",
+      });
+    }
+
+    req.shop = shop;
+    next();
+  } catch (err) {
+    console.error("Tenant middleware error:", err);
+    res.status(500).json({ message: "Tenant validation failed" });
   }
-  req.shop = shop;
-  req.shopId = shop._id;
-  next();
 };
-
-module.exports = { tenantMiddleware };

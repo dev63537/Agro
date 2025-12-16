@@ -13,3 +13,32 @@ PS D:\A saas test\backend> $body = @{
 After logging in as shop admin, open console and run:
 
 JSON.parse(localStorage.getItem("user"))
+
+
+
+OPTION 3 — SAAS FEATURES
+
+Make it money-ready:
+
+Shop subscription expiry
+
+Plan limits
+
+Shop suspension UI
+
+
+
+
+ OPTION 4 — DEPLOY
+Put it live:
+
+Backend → Render
+
+Frontend → Vercel
+
+MongoDB → Atlas
+
+
+
+
+
