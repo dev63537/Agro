@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import MasterDashboard from "./pages/master/MasterDashboard";
 import ShopManagement from "./pages/shops/ShopManagement";
-
+import ShopBlocked from "./components/ShopBlocked";
 import ShopDashboard from "./pages/shopadmin/ShopDashboard";
 import CreateShop from "./pages/master/CreateShop";
 import Products from "./pages/shopadmin/Products";
@@ -26,7 +26,6 @@ import { useAuth } from "./hooks/useAuth";
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
 
-  // ✅ WAIT until auth is restored
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-600">
@@ -35,12 +34,36 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  // not logged in
   if (!user) return <Navigate to="/login" replace />;
 
-  // role check
+  // 🔐 Role check
   if (role && user.role !== role && user.role !== "master") {
     return <div className="p-6 text-red-600">Forbidden</div>;
+  }
+
+  // 🛑 SHOP ADMIN BLOCK CHECK
+  if (user.role === "shop_admin") {
+    const shop = user.shop;
+
+    if (!shop) {
+      return (
+        <ShopBlocked reason="Shop information not found. Please contact admin." />
+      );
+    }
+
+    // ❌ Suspended
+    if (shop.status?.toUpperCase() === "SUSPENDED") {
+      return (
+        <ShopBlocked reason="Your shop has been suspended by the admin." />
+      );
+    }
+
+    // ❌ Expired
+    if (shop.expiryDate && new Date(shop.expiryDate) < new Date()) {
+      return (
+        <ShopBlocked reason="Your shop subscription has expired." />
+      );
+    }
   }
 
   return children;

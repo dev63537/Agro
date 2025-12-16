@@ -42,9 +42,8 @@ const updateShopStatus = async (req, res) => {
 
     // 🔹 Update status (ACTIVE / SUSPENDED)
     if (status) {
-      shop.status = status;
+      shop.status = status.toUpperCase();
     }
-
     // 🔹 Update plan (FREE / BASIC / PRO)
     if (plan) {
       shop.plan = plan;
