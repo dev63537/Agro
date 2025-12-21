@@ -1,17 +1,48 @@
-const Bill = require('../models/Bill');
-const Shop = require('../models/Shop');
+const Bill = require("../models/Bill");
+
+const MONTHS = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+];
+
+function padNumber(num, size = 6) {
+  return String(num).padStart(size, "0");
+}
 
 /**
- * Generate sequential bill number per shop: SHOPCODE-YYYY-XXXX
- * We generate by counting bills for current year and incrementing.
+ * Generate Bill Number
+ * Format: 2025DEC-000001
  */
-const generateBillNo = async (shopId) => {
-  const shop = await Shop.findById(shopId);
-  const code = (shop && shop.code) ? shop.code.toUpperCase() : `SHOP${String(shopId).slice(-4).toUpperCase()}`;
-  const year = new Date().getFullYear();
-  const count = await Bill.countDocuments({ shopId, createdAt: { $gte: new Date(`${year}-01-01`), $lte: new Date(`${year}-12-31`) } });
-  const seq = (count + 1).toString().padStart(4, '0');
-  return `${code}-${year}-${seq}`;
-};
+async function generateBillNo(shopId) {
+  const now = new Date();
 
-module.exports = { generateBillNo };
+  const year = now.getFullYear();
+  const month = MONTHS[now.getMonth()];
+  const prefix = `${year}${month}`;
+
+  // Find last bill of this shop for this month
+  const lastBill = await Bill.findOne({
+    shopId,
+    billNo: { $regex: `^${prefix}-` }
+  })
+    .sort({ createdAt: -1 })
+    .select("billNo");
+
+  let nextSeq = 1;
+
+  if (lastBill?.billNo) {
+    const lastSeq = parseInt(
+      lastBill.billNo.split("-")[1],
+      10
+    );
+    if (!isNaN(lastSeq)) {
+      nextSeq = lastSeq + 1;
+    }
+  }
+
+  return `${prefix}-${padNumber(nextSeq)}`;
+}
+
+module.exports = {
+  generateBillNo
+};

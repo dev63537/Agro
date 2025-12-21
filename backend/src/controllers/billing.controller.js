@@ -1,11 +1,31 @@
-const { createBill } = require('../services/billing.service');
+
 
 const createBillController = async (req, res) => {
-  const { farmerId, items, paymentType, signatureBase64 } = req.body;
-  const shop = req.shop;
-  const result = await createBill({ shop, farmerId, items, paymentType, signatureBase64 });
-  res.status(201).json({ bill: result.bill, ledger: result.ledger });
+  try {
+    const { farmerId, items, paymentType, signatureBase64 } = req.body;
+    const shop = req.shop;
+
+    // 🔥 DYNAMIC IMPORT (FIXES NODE 24 ESM ISSUE)
+    const billingService = await import('../services/billing.service.js');
+    const createBill = billingService.createBill;
+
+    const bill = await createBill({
+      shop,
+      farmerId,
+      items,
+      paymentType,
+      signatureBase64,
+    });
+
+    res.status(201).json({ bill });
+  } catch (err) {
+    console.error("Create bill error:", err);
+    res.status(err.status || 500).json({
+      error: err.message || "Failed to create bill",
+    });
+  }
 };
+
 
 const getBill = async (req, res) => {
   const { id } = req.params;

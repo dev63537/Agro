@@ -6,8 +6,8 @@ const Farmer = require("../models/Farmer");
 const YearlyLedger = require("../models/YearlyLedger");
 const planLimits = require("../config/planLimits");
 
-const { uploadBase64, uploadBuffer } = require("./s3.service");
-const { generateInvoicePDFBuffer } = require("./pdf.service");
+// const { uploadBase64, uploadBuffer } = require("./s3.service");
+// const { generateInvoicePDFBuffer } = require("./pdf.service");
 const { generateBillNo } = require("../utils/id.util");
 
 /**
@@ -54,6 +54,15 @@ async function countBillsThisMonth(shopId) {
     createdAt: { $gte: startOfMonth },
   });
 }
+const year = new Date().getFullYear();
+
+const ledger = await YearlyLedger.findOne({
+  shopId: shop._id,
+  farmerId,
+  year,
+});
+
+const pendingDue = ledger?.totalDue || 0;
 
 /**
  * Create Bill
@@ -94,7 +103,10 @@ const createBill = async ({
   }
 
   if (!farmer.active && paymentType === "credit") {
-    throw { status: 400, message: "Farmer inactive due to pending dues" };
+    throw {
+      status: 403,
+      message: "This farmer is INACTIVE. Credit billing is not allowed.",
+    };
   }
 
   let subTotal = 0;
@@ -179,23 +191,27 @@ const createBill = async ({
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  // Generate & upload PDF
-  const pdfBuffer = await generateInvoicePDFBuffer({
-    bill: bill.toObject(),
-    shop: shop.toObject(),
-    farmer: farmer.toObject(),
-  });
+  //  Generate & upload PDF
+  // const pdfBuffer = await generateInvoicePDFBuffer({
+  //   bill: bill.toObject(),
+  //   shop: shop.toObject(),
+  //   farmer: farmer.toObject(),
+  // });
 
-  const pdfUpload = await uploadBuffer({
-    buffer: pdfBuffer,
-    keyPrefix: `invoices/${shop._id}`,
-    filename: `${billNo}.pdf`,
-  });
+  // const pdfUpload = await uploadBuffer({
+  //   buffer: pdfBuffer,
+  //   keyPrefix: `invoices/${shop._id}`,
+  //   filename: `${billNo}.pdf`,
+  // });
 
-  bill.invoiceUrl = pdfUpload.url;
-  await bill.save();
+  // bill.invoiceUrl = pdfUpload.url;
+  // await bill.save();
+  // PDF generation disabled for now
 
-  return bill;
+  return {
+    bill,
+    pendingDueBeforeBill: pendingDue
+  };
 };
 
 module.exports = {

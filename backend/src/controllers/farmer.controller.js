@@ -1,20 +1,21 @@
 const Farmer = require('../models/Farmer');
 
 const listFarmers = async (req, res) => {
-  const farmers = await Farmer.find({ shopId: req.shopId }).sort({ name: 1 });
+  const farmers = await Farmer.find({
+    shopId: req.shop._id, 
+  }).sort({ createdAt: -1 });
+
   res.json({ farmers });
 };
+
 
 const createFarmer = async (req, res) => {
   const { name, phone, village } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
 
   const farmer = await Farmer.create({
-    shopId: req.shopId,
-    name,
-    phone,
-    village,
-    active: true
+    ...req.body,
+    shopId: req.shop._id,
   });
 
   res.status(201).json({ farmer });
