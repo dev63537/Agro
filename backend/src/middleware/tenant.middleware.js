@@ -28,7 +28,10 @@ module.exports = async (req, res, next) => {
       });
     }
 
+    // ✅ FIX (THIS LINE WAS MISSING)
     req.shop = shop;
+    req.shopId = shop._id; // 🔥 REQUIRED for controllers
+
     next();
   } catch (err) {
     console.error("Tenant middleware error:", err);

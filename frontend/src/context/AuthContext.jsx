@@ -1,43 +1,46 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import api from "../lib/apiClient";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ NEW
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
-      setToken(storedToken);
     }
 
-    setLoading(false); // ✅ auth restored
+    setLoading(false);
   }, []);
 
-  const login = ({ user, token }) => {
-    setUser(user);
-    setToken(token);
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("token", token);
+  const login = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setUser(data.user);
   };
 
   const logout = () => {
+    localStorage.clear();
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuthContext = () => useContext(AuthContext);
+/* 🔴 THIS EXPORT WAS MISSING OR WRONG */
+export const useAuthContext = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuthContext must be used inside AuthProvider");
+  }
+  return ctx;
+};

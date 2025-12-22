@@ -1,48 +1,79 @@
-import React, { useState } from 'react'
-import api from '../../lib/apiClient'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from "react";
+import api from "../../lib/apiClient";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function ProductForm() {
-  const [name, setName] = useState('')
-  const [price, setPrice] = useState('')
-  const [unit, setUnit] = useState('kg')
-  const [gst, setGst] = useState(5)
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const submit = async (e) => {
-    e.preventDefault()
+  const [form, setForm] = useState({
+    name: "",
+    sku: "",
+    unit: "kg",
+    price: "",
+    gstPercent: "",
+    category: "",
+    description: "",
+  });
+
+  const isEdit = Boolean(id);
+
+  // ✅ LOAD PRODUCT FOR EDIT
+  useEffect(() => {
+    if (!isEdit) return;
+
+    (async () => {
+      try {
+        const res = await api.get(`/products/${id}`);
+        setForm({
+          name: res.data.product.name || "",
+          sku: res.data.product.sku || "",
+          unit: res.data.product.unit || "kg",
+          price: res.data.product.price || "",
+          gstPercent: res.data.product.gstPercent || "",
+          category: res.data.product.category || "",
+          description: res.data.product.description || "",
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [id]);
+
+  const onChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const submit = async () => {
     try {
-      await api.post('/products', { name, price: Number(price), unit, gstPercent: Number(gst) })
-      navigate('/shop/products')
+      if (isEdit) {
+        await api.put(`/products/${id}`, form);
+      } else {
+        await api.post("/products", form);
+      }
+      navigate("/shop/products");
     } catch (err) {
-      alert(err.response?.data?.error || err.message)
+      console.error(err);
     }
-  }
+  };
 
   return (
-    <div className="max-w-lg">
-      <h2 className="text-xl font-semibold mb-4">Add Product</h2>
-      <form onSubmit={submit} className="space-y-3 bg-white p-4 rounded shadow">
-        <div>
-          <label className="block mb-1">Name</label>
-          <input value={name} onChange={e=>setName(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">Price</label>
-          <input value={price} onChange={e=>setPrice(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">Unit</label>
-          <input value={unit} onChange={e=>setUnit(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">GST %</label>
-          <input value={gst} onChange={e=>setGst(e.target.value)} />
-        </div>
-        <div>
-          <button className="btn-primary">Save</button>
-        </div>
-      </form>
+    <div className="max-w-xl bg-white p-4 rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">
+        {isEdit ? "Edit Product" : "Add Product"}
+      </h2>
+
+      <input name="name" placeholder="Product Name" value={form.name} onChange={onChange} />
+      <input name="sku" placeholder="SKU" value={form.sku} onChange={onChange} />
+      <input name="unit" placeholder="Unit (kg, ltr)" value={form.unit} onChange={onChange} />
+      <input name="price" type="number" placeholder="Price" value={form.price} onChange={onChange} />
+      <input name="gstPercent" type="number" placeholder="GST %" value={form.gstPercent} onChange={onChange} />
+      <input name="category" placeholder="Category" value={form.category} onChange={onChange} />
+      <textarea name="description" placeholder="Description" value={form.description} onChange={onChange} />
+
+      <button className="btn-primary mt-3" onClick={submit}>
+        {isEdit ? "Update Product" : "Create Product"}
+      </button>
     </div>
-  )
+  );
 }

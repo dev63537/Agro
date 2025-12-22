@@ -41,6 +41,15 @@ MongoDB → Atlas
 
 
 
+
+chore: stabilize shop admin product & farmer management flow
+
+- prepare for product edit/update support
+- prepare for farmer edit/update support
+- plan UI changes for edit buttons and ID visibility
+- no functional changes yet
+
+
 rakhavanu che 
 react tostify 
 paasword 

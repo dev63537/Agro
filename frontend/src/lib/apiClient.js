@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // ✅ ADD SHOP CONTEXT (THIS FIXES YOUR ERROR)
+  // ✅ ADD SHOP CONTEXT 
   if (user?.shopId) {
     config.headers["x-shop-id"] = user.shopId;
   }

@@ -142,6 +142,18 @@ export default function App() {
       />
 
       <Route
+        path="/shop/products/:id/edit"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ProductForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+
+      <Route
         path="/shop/stock"
         element={
           <ProtectedRoute role="shop_admin">
@@ -173,7 +185,7 @@ export default function App() {
         }
       />
       <Route
-        path="/shop/farmers/new"
+        path="/shop/farmers/:id/edit"
         element={
           <ProtectedRoute role="shop_admin">
             <ShopLayout>
