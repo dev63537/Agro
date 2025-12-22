@@ -152,7 +152,6 @@ export default function App() {
         }
       />
 
-
       <Route
         path="/shop/stock"
         element={

@@ -33,16 +33,23 @@ export default function Farmers() {
               <div>
                 <div className="font-semibold">{f.name}</div>
                 <div className="text-sm text-gray-600">
-                  {f.village} | {f.phone}
-                </div>
-                <div className="text-xs text-gray-400">
                   ID: {f._id}
                 </div>
+                <div className="text-sm text-gray-600">
+                  {f.village} | {f.phone}
+                </div>
+                <div className={`text-sm ${f.active ? "text-green-600" : "text-red-600"}`}>
+                  {f.active ? "Active" : "Inactive"}
+                </div>
               </div>
-              <Link to={`/shop/farmers/edit/${f._id}`} className="text-blue-600">
-                Edit
-              </Link>
+
+              <div>
+                <Link to={`/shop/farmers/${f._id}/edit`} className="text-blue-600">
+                  Edit
+                </Link>
+              </div>
             </div>
+
           ))}
         </div>
       )}
