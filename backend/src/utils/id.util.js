@@ -5,6 +5,10 @@ const MONTHS = [
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
 ];
 
+/**
+ * Pad number with leading zeros
+ * Example: padNumber(1) → 000001
+ */
 function padNumber(num, size = 6) {
   return String(num).padStart(size, "0");
 }
@@ -20,10 +24,10 @@ async function generateBillNo(shopId) {
   const month = MONTHS[now.getMonth()];
   const prefix = `${year}${month}`;
 
-  // Find last bill of this shop for this month
+  // Find last bill for this shop + month
   const lastBill = await Bill.findOne({
     shopId,
-    billNo: { $regex: `^${prefix}-` }
+    billNo: { $regex: `^${prefix}-` },
   })
     .sort({ createdAt: -1 })
     .select("billNo");
@@ -31,10 +35,7 @@ async function generateBillNo(shopId) {
   let nextSeq = 1;
 
   if (lastBill?.billNo) {
-    const lastSeq = parseInt(
-      lastBill.billNo.split("-")[1],
-      10
-    );
+    const lastSeq = parseInt(lastBill.billNo.split("-")[1], 10);
     if (!isNaN(lastSeq)) {
       nextSeq = lastSeq + 1;
     }
@@ -44,5 +45,5 @@ async function generateBillNo(shopId) {
 }
 
 module.exports = {
-  generateBillNo
+  generateBillNo,
 };

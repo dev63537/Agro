@@ -1,57 +1,65 @@
-const fs = require('fs');
-const path = require('path');
-const { s3 } = require('../config/aws');
-const { v4: uuidv4 } = require('uuid');
+const fs = require("fs");
+const path = require("path");
+const { v4: uuid } = require("uuid");
 
-const STORAGE_DRIVER = process.env.STORAGE_DRIVER || 'local';
-const LOCAL_STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || path.join(__dirname, '..', '..', 'uploads');
-
-const uploadBase64 = async ({ base64, keyPrefix = 'signatures', contentType = 'image/png' }) => {
-  if (STORAGE_DRIVER === 'local') {
-    const buffer = Buffer.from(base64.replace(/^data:\w+\/\w+;base64,/, ''), 'base64');
-    if (!fs.existsSync(LOCAL_STORAGE_PATH)) fs.mkdirSync(LOCAL_STORAGE_PATH, { recursive: true });
-    const filename = `${keyPrefix}-${Date.now()}-${uuidv4()}.png`;
-    const fullpath = path.join(LOCAL_STORAGE_PATH, filename);
-    fs.writeFileSync(fullpath, buffer);
-    // return a URL path that can be served statically
-    const url = `/uploads/${filename}`;
-    return { url, key: filename };
+/**
+ * Ensure directory exists
+ */
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
+}
 
-  const buffer = Buffer.from(base64.replace(/^data:\w+\/\w+;base64,/, ''), 'base64');
-  const bucket = process.env.S3_BUCKET;
-  const key = `${keyPrefix}/${Date.now()}-${uuidv4()}.png`;
-  const params = {
-    Bucket: bucket,
-    Key: key,
-    Body: buffer,
-    ContentType: contentType,
-    ACL: 'public-read'
+/**
+ * Upload BASE64 image (signature)
+ */
+const uploadBase64 = async ({ base64, keyPrefix }) => {
+  if (!base64) return null;
+
+  const matches = base64.match(/^data:(.+);base64,(.+)$/);
+  if (!matches) throw new Error("Invalid base64 data");
+
+  const buffer = Buffer.from(matches[2], "base64");
+
+  const dir = path.join(__dirname, "..", "..", "uploads", keyPrefix);
+  ensureDir(dir);
+
+  const filename = `${uuid()}.png`;
+  const filePath = path.join(dir, filename);
+
+  fs.writeFileSync(filePath, buffer);
+
+  return {
+    url: `/uploads/${keyPrefix}/${filename}`,
   };
-  const res = await s3.upload(params).promise();
-  return { url: res.Location, key: res.Key };
 };
 
-const uploadBuffer = async ({ buffer, keyPrefix = 'invoices', filename = null, contentType = 'application/pdf' }) => {
-  if (STORAGE_DRIVER === 'local') {
-    if (!fs.existsSync(LOCAL_STORAGE_PATH)) fs.mkdirSync(LOCAL_STORAGE_PATH, { recursive: true });
-    const file = filename || `${keyPrefix}-${Date.now()}-${uuidv4()}.pdf`;
-    const fullpath = path.join(LOCAL_STORAGE_PATH, file);
-    fs.writeFileSync(fullpath, buffer);
-    return { url: `/uploads/${file}`, key: file };
+/**
+ * Upload PDF buffer
+ */
+const uploadBuffer = async ({ buffer, keyPrefix, filename }) => {
+  if (!Buffer.isBuffer(buffer)) {
+    throw new Error("Invalid buffer data");
   }
 
-  const bucket = process.env.S3_BUCKET;
-  const key = `${keyPrefix}/${filename || `${Date.now()}-${uuidv4()}.pdf`}`;
-  const params = {
-    Bucket: bucket,
-    Key: key,
-    Body: buffer,
-    ContentType: contentType,
-    ACL: 'public-read'
+  if (!filename) {
+    throw new Error("Filename is required for uploadBuffer");
+  }
+
+  const dir = path.join(__dirname, "..", "..", "uploads", keyPrefix);
+  ensureDir(dir);
+
+  const filePath = path.join(dir, filename);
+
+  fs.writeFileSync(filePath, buffer);
+
+  return {
+    url: `/uploads/${keyPrefix}/${filename}`,
   };
-  const res = await s3.upload(params).promise();
-  return { url: res.Location, key: res.Key };
 };
 
-module.exports = { uploadBase64, uploadBuffer };
+module.exports = {
+  uploadBase64,
+  uploadBuffer,
+};

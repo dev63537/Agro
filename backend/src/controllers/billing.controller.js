@@ -1,13 +1,10 @@
-
+const { createBill } = require("../services/billing.service");
+const Bill = require("../models/Bill");
 
 const createBillController = async (req, res) => {
   try {
     const { farmerId, items, paymentType, signatureBase64 } = req.body;
     const shop = req.shop;
-
-    // 🔥 DYNAMIC IMPORT (FIXES NODE 24 ESM ISSUE)
-    const billingService = await import('../services/billing.service.js');
-    const createBill = billingService.createBill;
 
     const bill = await createBill({
       shop,
@@ -26,13 +23,24 @@ const createBillController = async (req, res) => {
   }
 };
 
-
 const getBill = async (req, res) => {
-  const { id } = req.params;
-  const Bill = require('../models/Bill');
-  const bill = await Bill.findOne({ _id: id, shopId: req.shopId });
-  if (!bill) return res.status(404).json({ error: 'Bill not found' });
-  res.json({ bill });
+  try {
+    const bill = await Bill.findOne({
+      _id: req.params.id,
+      shopId: req.shop._id,
+    });
+
+    if (!bill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    res.json({ bill });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch bill" });
+  }
 };
 
-module.exports = { createBillController, getBill };
+module.exports = {
+  createBillController,
+  getBill,
+};

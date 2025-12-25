@@ -50,6 +50,11 @@ export default function Billing() {
     if (items.length === 0) return alert("Add items");
 
     const signatureBase64 = sigRef.current?.getDataURL();
+
+    if (!signatureBase64 || typeof signatureBase64 !== "string") {
+      return alert("Please sign before creating bill");
+    }
+
     if (!signatureBase64) return alert("Please sign");
 
     setShowConfirm(true);
@@ -59,6 +64,11 @@ export default function Billing() {
   const confirmCreateBill = async () => {
     try {
       const signatureBase64 = sigRef.current?.getDataURL();
+
+      if (!signatureBase64 || typeof signatureBase64 !== "string") {
+        return alert("Please sign before creating bill");
+      }
+
 
       const payload = {
         farmerId,

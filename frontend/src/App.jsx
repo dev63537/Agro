@@ -23,6 +23,9 @@ import ShopLayout from "./layouts/ShopLayout";
 
 import { useAuth } from "./hooks/useAuth";
 
+/* ================================
+   ✅ PROTECTED ROUTE (REQUIRED)
+================================ */
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
 
@@ -36,12 +39,12 @@ const ProtectedRoute = ({ children, role }) => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // 🔐 Role check
+  // Role check
   if (role && user.role !== role && user.role !== "master") {
     return <div className="p-6 text-red-600">Forbidden</div>;
   }
 
-  // 🛑 SHOP ADMIN BLOCK CHECK
+  // Shop admin block rules
   if (user.role === "shop_admin") {
     const shop = user.shop;
 
@@ -51,14 +54,12 @@ const ProtectedRoute = ({ children, role }) => {
       );
     }
 
-    // ❌ Suspended
     if (shop.status?.toUpperCase() === "SUSPENDED") {
       return (
         <ShopBlocked reason="Your shop has been suspended by the admin." />
       );
     }
 
-    // ❌ Expired
     if (shop.expiryDate && new Date(shop.expiryDate) < new Date()) {
       return (
         <ShopBlocked reason="Your shop subscription has expired." />
@@ -69,14 +70,15 @@ const ProtectedRoute = ({ children, role }) => {
   return children;
 };
 
-
+/* ================================
+   ✅ APP ROUTES
+================================ */
 export default function App() {
   return (
     <Routes>
-      {/* Login */}
       <Route path="/login" element={<Login />} />
 
-      {/* Master Admin */}
+      {/* MASTER */}
       <Route
         path="/master"
         element={
@@ -87,6 +89,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/master/shops"
         element={
@@ -97,6 +100,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/master/shops/create"
         element={
@@ -108,7 +112,7 @@ export default function App() {
         }
       />
 
-      {/* Shop Admin */}
+      {/* SHOP ADMIN */}
       <Route
         path="/shop"
         element={
@@ -130,6 +134,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/shop/products/new"
         element={
@@ -162,6 +167,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/shop/stock/new"
         element={
@@ -183,6 +189,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/shop/farmers/:id/edit"
         element={
@@ -238,7 +245,7 @@ export default function App() {
         }
       />
 
-      {/* Fallback */}
+      {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
