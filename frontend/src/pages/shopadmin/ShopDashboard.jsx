@@ -19,8 +19,9 @@ export default function ShopDashboard() {
 
   const isLoading = salesLoading || farmersLoading || lowStockLoading;
 
-  // ✅ SAFETY: ALWAYS force arrays
-  const salesBills = Array.isArray(salesRes?.bills) ? salesRes.bills : [];
+  const salesDataObj = salesRes || { total: 0, count: 0, bills: [] };
+  const salesBills = salesDataObj.bills;
+
 
   const farmers = Array.isArray(farmersRes) ? farmersRes : [];
   const lowStock = Array.isArray(lowStockRes) ? lowStockRes : [];
@@ -28,7 +29,7 @@ export default function ShopDashboard() {
   // ✅ Transform safely
   const salesData = salesBills.map((b) => ({
     date: new Date(b.createdAt).toLocaleDateString(),
-    total: b.total || 0,
+    total: b.totalAmount || 0,
   }));
 
   const farmerData = farmers.map((f) => ({
@@ -41,12 +42,17 @@ export default function ShopDashboard() {
     qty: p.qty || 0,
   }));
 
-  const totalSales = salesBills.reduce((sum, b) => sum + (b.total || 0), 0);
+  const totalSales = salesBills.reduce(
+    (sum, b) => sum + (b.totalAmount || 0),
+    0
+  );
 
   const totalBills = salesBills.length;
   const totalFarmers = farmers.length;
   const lowStockCount = lowStock.length;
 
+
+  console.log("SALES API RESPONSE:", salesRes);
   return (
     <div className="space-y-6">
       {isLoading ? (

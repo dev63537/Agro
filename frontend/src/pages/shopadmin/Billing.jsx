@@ -5,6 +5,8 @@ import SignaturePad from '../../components/SignaturePad'
 import BillSummary from '../../components/BillSummary'
 import { useNavigate } from 'react-router-dom'
 import BillConfirmModal from "../../components/BillConfirmModal";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 export default function Billing() {
   const [products, setProducts] = useState([])
@@ -14,6 +16,7 @@ export default function Billing() {
   const sigRef = useRef(null)
   const navigate = useNavigate()
   const [showConfirm, setShowConfirm] = useState(false);
+  const queryClient = useQueryClient();
 
 
   useEffect(() => {
@@ -88,6 +91,12 @@ export default function Billing() {
       };
 
       const res = await api.post('/billing', payload);
+
+     await queryClient.invalidateQueries({ queryKey: ["shop-sales"], refetchType: "active" });
+await queryClient.invalidateQueries({ queryKey: ["top-farmers"], refetchType: "active" });
+await queryClient.invalidateQueries({ queryKey: ["low-stock"], refetchType: "active" });
+
+
 
       const bill = res.data.bill;
       const pendingDue = res.data.pendingDueBeforeBill || 0;

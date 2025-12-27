@@ -6,20 +6,21 @@ const StockBatch = require("../models/StockBatch");
 // 🔹 SALES REPORT
 exports.salesReport = async (req, res) => {
   try {
-    const bills = await Bill.find({ shop: req.shop._id }).sort({ createdAt: -1 });
+    const bills = await Bill.find({ shopId: req.shopId })
+      .sort({ createdAt: -1 });
 
-    const total = bills.reduce((sum, b) => sum + b.total, 0);
+    const total = bills.reduce(
+      (sum, b) => sum + (b.totalAmount || 0),
+      0
+    );
 
     res.json({
-      success: true,
-      data: {
-        total,
-        count: bills.length,
-        bills,
-      },
+      bills,
+      total,
+      count: bills.length,
     });
-
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -54,10 +55,8 @@ exports.getTopFarmers = async (req, res) => {
       };
     });
 
-    res.json({
-      success: true,
-      data: result,
-    });
+    res.json(result);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -72,31 +71,43 @@ exports.getTopFarmers = async (req, res) => {
 exports.getLowStock = async (req, res) => {
   try {
     const data = await StockBatch.aggregate([
-      { $match: { shopId: req.shop._id } },
+      // ✅ FIX 1: correct shop field
+      { $match: { shopId: req.shopId } },
+
+      // ✅ FIX 2: correct product field
       {
         $group: {
-          _id: "$product",
+          _id: "$productId",
           qty: { $sum: "$qty" },
         },
       },
+
+      // ✅ threshold
       { $match: { qty: { $lte: 10 } } },
     ]);
 
+    // ✅ populate product safely
     const populated = await Product.populate(data, {
       path: "_id",
       select: "name",
     });
 
-    res.json(
-      populated.map((p) => ({
+    // ✅ return only valid products
+    const result = populated
+      .filter((p) => p._id)
+      .map((p) => ({
         name: p._id.name,
         qty: p.qty,
-      }))
-    );
+      }));
+
+    res.json(result);
   } catch (err) {
+    console.error("Low stock report error:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
+
 
 // 🔹 STOCK REPORT
 exports.stockReport = async (req, res) => {
