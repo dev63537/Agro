@@ -6,7 +6,7 @@ const StockBatch = require("../models/StockBatch");
 // 🔹 SALES REPORT
 exports.salesReport = async (req, res) => {
   try {
-    const bills = await Bill.find({ shop: req.shopId }).sort({ createdAt: -1 });
+    const bills = await Bill.find({ shop: req.shop._id }).sort({ createdAt: -1 });
 
     const total = bills.reduce((sum, b) => sum + b.total, 0);
 
@@ -28,7 +28,7 @@ exports.salesReport = async (req, res) => {
 exports.getTopFarmers = async (req, res) => {
   try {
     const agg = await Bill.aggregate([
-      { $match: { shop: req.shopId } },
+      { $match: { shopId: req.shop._id } },
       {
         $group: {
           _id: "$farmer",
@@ -72,7 +72,7 @@ exports.getTopFarmers = async (req, res) => {
 exports.getLowStock = async (req, res) => {
   try {
     const data = await StockBatch.aggregate([
-      { $match: { shop: req.shopId } },
+      { $match: { shopId: req.shop._id } },
       {
         $group: {
           _id: "$product",

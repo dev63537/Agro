@@ -62,6 +62,12 @@ export default function Billing() {
 
 
   const confirmCreateBill = async () => {
+    for (const it of items) {
+      if (!it.productId) {
+        alert("Please select product for all items");
+        return;
+      }
+    }
     try {
       const signatureBase64 = sigRef.current?.getDataURL();
 
@@ -95,6 +101,22 @@ export default function Billing() {
     } catch (err) {
       alert(err.response?.data?.error || err.message);
     }
+  };
+
+  const canCreateBill = () => {
+    if (!farmerId) return false;
+    if (items.length === 0) return false;
+
+    // every item must have product selected
+    for (const it of items) {
+      if (!it.productId) return false;
+    }
+
+    // signature must exist
+    const sig = sigRef.current?.getDataURL();
+    if (!sig || typeof sig !== "string") return false;
+
+    return true;
   };
 
 
@@ -146,11 +168,12 @@ export default function Billing() {
             <button className="mr-2" onClick={() => sigRef.current?.clear()}>Clear</button>
             <button
               className="btn-primary"
-              disabled={!farmerId || items.length === 0}
+              disabled={!canCreateBill()}
               onClick={submit}
             >
               Create Bill & Invoice
-            </button>          </div>
+            </button>
+          </div>
         </div>
       </div>
 
