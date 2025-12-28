@@ -1,16 +1,18 @@
-// useMasterReports.js
-// Converted to @tanstack/react-query usage for v5+
-
 import { useQuery } from "@tanstack/react-query";
 import api from "../../lib/apiClient";
+
+// 🔹 REFRESH EVERY 10 SECONDS
+const LIVE_INTERVAL = 10000;
 
 export const useMasterSales = () =>
   useQuery({
     queryKey: ["master-sales"],
     queryFn: async () => {
       const res = await api.get("/master/reports/sales");
-      return res.data;
-    }
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    refetchInterval: LIVE_INTERVAL,
+    staleTime: 0,
   });
 
 export const useMasterTopFarmers = () =>
@@ -18,15 +20,18 @@ export const useMasterTopFarmers = () =>
     queryKey: ["master-top-farmers"],
     queryFn: async () => {
       const res = await api.get("/master/reports/farmers");
-      return res.data;
-    }
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    refetchInterval: LIVE_INTERVAL,
+    staleTime: 0,
   });
 
-export const useMasterLowStock = (threshold = 10) =>
+export const useMasterShopCount = () =>
   useQuery({
-    queryKey: ["master-low-stock", threshold],
+    queryKey: ["master-shop-count"],
     queryFn: async () => {
-      const res = await api.get(`/master/reports/low-stock?threshold=${threshold}`);
-      return res.data;
-    }
+      const res = await api.get("/master/reports/shops/count");
+      return res.data.total || 0;
+    },
   });
+
