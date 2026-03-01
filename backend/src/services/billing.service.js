@@ -7,6 +7,29 @@ const mongoose = require("mongoose");
 /**
  * FIFO stock consumption with session for rollback
  */
+async function deductStockForItem(shopId, productId, qtyNeeded) {
+  let remaining = qtyNeeded;
+
+  const [stockSummary] = await StockBatch.aggregate([
+    {
+      $match: {
+        shopId,
+        productId,
+        qty: { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalQty: { $sum: "$qty" },
+      },
+    },
+  ]);
+
+  if (!stockSummary || stockSummary.totalQty < qtyNeeded) {
+    throw { status: 400, message: "Insufficient stock" };
+  }
+
 async function consumeStock(session, shopId, productId, qtyNeeded) {
   const batches = await StockBatch.find({
     shopId,
@@ -72,6 +95,77 @@ exports.createBill = async ({
       throw new Error("Farmer not found");
     }
 
+    const qty = Number(it.qty);
+    const unitPrice = Number(it.unitPrice || product.price);
+    const gstPercent = Number(product.gstPercent || 0);
+
+    if (!Number.isFinite(qty) || qty <= 0) {
+      throw { status: 400, message: "Invalid item quantity" };
+    }
+
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw { status: 400, message: "Invalid item price" };
+    }
+
+    const amount = qty * unitPrice;
+    const gst = (amount * gstPercent) / 100;
+
+    subTotal += amount;
+    gstTotal += gst;
+
+    detailedItems.push({
+      productId: product._id,
+      name: product.name,
+      qty,
+      unitPrice,
+      gstPercent,
+      total: amount + gst,
+    });
+  }
+
+  // 🔻 STOCK
+  for (const it of detailedItems) {
+    await deductStockForItem(shop._id, it.productId, it.qty);
+  }
+
+  // ✍️ SIGNATURE
+  let signatureUrl = null;
+  if (signatureBase64) {
+    const uploadRes = await uploadBase64({
+      base64: signatureBase64,
+      keyPrefix: `signatures/${shop._id}`,
+    });
+    signatureUrl = uploadRes.url;
+  }
+
+  // ✅ ✅ ✅ GENERATE BILL NUMBER FIRST
+  const billNo = await generateBillNo(shop._id);
+
+  // ✅ CREATE BILL
+  const bill = await Bill.create({
+    shopId: shop._id,
+    farmerId,
+    billNo,
+    items: detailedItems,
+    subTotal,
+    gstTotal,
+    totalAmount: subTotal + gstTotal,
+    paymentType,
+    signatureUrl,
+  });
+
+  // 📒 LEDGER
+  const year = new Date().getFullYear();
+  await YearlyLedger.findOneAndUpdate(
+    { shopId: shop._id, farmerId, year },
+    {
+      $inc: { totalDue: bill.totalAmount },
+      $push: {
+        transactions: {
+          type: "bill",
+          billId: bill._id,
+          amount: bill.totalAmount,
+          date: new Date(),
     let subTotal = 0;
     let gstTotal = 0;
     const billItems = [];
@@ -136,6 +230,11 @@ exports.createBill = async ({
       });
     }
 
+module.exports = {
+  createBill,
+  countBillsThisMonth,
+  deductStockForItem,
+};
     // THIRD: Create the bill
     const bill = await Bill.create([{
       shopId: shop._id,
