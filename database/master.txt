@@ -20,5 +20,5 @@ demo shop = email:tirth@gmail.com
 
 
             Email: malvi@gmail.com
-            Password: 0hha0cpc
+            Password: 0hha0cpc  
             

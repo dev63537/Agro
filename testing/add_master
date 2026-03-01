@@ -58,3 +58,7 @@ manage shop
 passsword defoult 
 numbering 
 massage 
+
+
+git add .
+git commit -m "feat(payment): add separate Payment model with paid/pending tracking and farmer balance calculation"

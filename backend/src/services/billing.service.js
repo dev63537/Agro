@@ -2,16 +2,10 @@ const Bill = require("../models/Bill");
 const Product = require("../models/Product");
 const StockBatch = require("../models/StockBatch");
 const Farmer = require("../models/Farmer");
-const YearlyLedger = require("../models/YearlyLedger");
-const planLimits = require("../config/planLimits");
-
-
-const { uploadBase64, uploadBuffer } = require("./s3.service");
-const { generateInvoicePDFBuffer } = require("./pdf.service");
-const { generateBillNo } = require("../utils/id.util");
+const mongoose = require("mongoose");
 
 /**
- * FIFO stock deduction
+ * FIFO stock consumption with session for rollback
  */
 async function deductStockForItem(shopId, productId, qtyNeeded) {
   let remaining = qtyNeeded;
@@ -36,94 +30,69 @@ async function deductStockForItem(shopId, productId, qtyNeeded) {
     throw { status: 400, message: "Insufficient stock" };
   }
 
+async function consumeStock(session, shopId, productId, qtyNeeded) {
   const batches = await StockBatch.find({
     shopId,
     productId,
     qty: { $gt: 0 },
-  }).sort({ expiryDate: 1, receivedAt: 1 });
+  })
+    .sort({ receivedAt: 1 })
+    .session(session); // Add session for transaction
+
+  const available = batches.reduce((s, b) => s + b.qty, 0);
+  if (available < qtyNeeded) {
+    throw new Error(`Insufficient stock for product ${productId}. Available: ${available}, Needed: ${qtyNeeded}`);
+  }
+
+  let remaining = qtyNeeded;
+  const batchUpdates = [];
 
   for (const batch of batches) {
     if (remaining <= 0) break;
 
-    const take = Math.min(batch.qty, remaining);
-    batch.qty -= take;
-    remaining -= take;
-
-    await batch.save();
+    const used = Math.min(batch.qty, remaining);
+    batch.qty -= used;
+    remaining -= used;
+    
+    // Add to updates array
+    batchUpdates.push({
+      updateOne: {
+        filter: { _id: batch._id },
+        update: { $set: { qty: batch.qty } }
+      }
+    });
   }
 
-  if (remaining > 0) {
-    throw { status: 400, message: "Insufficient stock" };
+  // Bulk write with session for atomic update
+  if (batchUpdates.length > 0) {
+    await StockBatch.bulkWrite(batchUpdates, { session });
   }
+
+  return true;
 }
 
-/**
- * Count monthly bills (plan limit)
- */
-async function countBillsThisMonth(shopId) {
-  const start = new Date();
-  start.setDate(1);
-  start.setHours(0, 0, 0, 0);
-
-  return Bill.countDocuments({
-    shopId,
-    createdAt: { $gte: start },
-  });
-}
-
-/**
- * CREATE BILL (MAIN)
- */
-async function createBill({
+exports.createBill = async ({
   shop,
   farmerId,
   items,
-  paymentType = "cash",
+  paymentType,
   signatureBase64,
-}) {
-  if (!items || items.length === 0) {
-    throw { status: 400, message: "No items in bill" };
-  }
+}) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const farmer = await Farmer.findOne({
-    _id: farmerId,
-    shopId: shop._id,
-  });
-
-  if (!farmer) {
-    throw { status: 404, message: "Farmer not found" };
-  }
-
-  if (!farmer.active && paymentType === "credit") {
-    throw { status: 400, message: "Farmer inactive due to pending dues" };
-  }
-
-  // 🔐 PLAN LIMIT
-  const plan = shop.plan || "FREE";
-  const limits = planLimits[plan] || planLimits.FREE;
-
-  if (limits.monthlyBills !== Infinity) {
-    const used = await countBillsThisMonth(shop._id);
-    if (used >= limits.monthlyBills) {
-      throw {
-        status: 403,
-        message: `Monthly bill limit reached (${plan})`,
-      };
+  try {
+    if (!items || items.length === 0) {
+      throw new Error("No items in bill");
     }
-  }
 
-  let subTotal = 0;
-  let gstTotal = 0;
-  const detailedItems = [];
-
-  for (const it of items) {
-    const product = await Product.findOne({
-      _id: it.productId,
+    const farmer = await Farmer.findOne({
+      _id: farmerId,
       shopId: shop._id,
-    });
+    }).session(session);
 
-    if (!product) {
-      throw { status: 404, message: "Product not found" };
+    if (!farmer) {
+      throw new Error("Farmer not found");
     }
 
     const qty = Number(it.qty);
@@ -197,34 +166,93 @@ async function createBill({
           billId: bill._id,
           amount: bill.totalAmount,
           date: new Date(),
+    let subTotal = 0;
+    let gstTotal = 0;
+    const billItems = [];
+
+    // FIRST: Validate all products and stock availability
+    for (const it of items) {
+      const product = await Product.findOne({
+        _id: it.productId,
+        shopId: shop._id,
+      }).session(session);
+
+      if (!product) {
+        throw new Error(`Product ${it.productId} not found`);
+      }
+
+      // Check stock availability before consuming
+      const totalStock = await StockBatch.aggregate([
+        {
+          $match: {
+            shopId: shop._id,
+            productId: product._id,
+            qty: { $gt: 0 }
+          }
         },
-      },
-    },
-    { upsert: true, setDefaultsOnInsert: true }
-  );
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$qty" }
+          }
+        }
+      ]).session(session);
 
-  // 🧾 PDF
-  const pdfBuffer = await generateInvoicePDFBuffer({
-    bill: bill.toObject(),
-    shop: shop.toObject(),
-    farmer: farmer.toObject(),
-  });
+      const availableStock = totalStock[0]?.total || 0;
+      
+      if (availableStock < it.qty) {
+        throw new Error(`Insufficient stock for ${product.name}. Available: ${availableStock}, Requested: ${it.qty}`);
+      }
+    }
 
-  const pdfUpload = await uploadBuffer({
-    buffer: pdfBuffer,
-    keyPrefix: `invoices/${shop._id}`,
-    filename: `${billNo}.pdf`,
-  });
+    // SECOND: Consume stock for all items
+    for (const it of items) {
+      const product = await Product.findOne({
+        _id: it.productId,
+        shopId: shop._id,
+      }).session(session);
 
-  bill.invoiceUrl = pdfUpload.url;
-  await bill.save();
+      await consumeStock(session, shop._id, product._id, it.qty);
 
-  return bill;
-}
+      const amount = it.qty * product.price;
+      const gst = (amount * product.gstPercent) / 100;
 
+      subTotal += amount;
+      gstTotal += gst;
+
+      billItems.push({
+        productId: product._id,
+        name: product.name,
+        qty: it.qty,
+        unitPrice: product.price,
+        gstPercent: product.gstPercent,
+        total: amount + gst,
+      });
+    }
 
 module.exports = {
   createBill,
   countBillsThisMonth,
   deductStockForItem,
+};
+    // THIRD: Create the bill
+    const bill = await Bill.create([{
+      shopId: shop._id,
+      farmerId,
+      items: billItems,
+      subTotal,
+      gstTotal,
+      totalAmount: subTotal + gstTotal,
+      paymentType,
+    }], { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return bill[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 };
