@@ -16,6 +16,26 @@ const { generateBillNo } = require("../utils/id.util");
 async function deductStockForItem(shopId, productId, qtyNeeded) {
   let remaining = qtyNeeded;
 
+  const [stockSummary] = await StockBatch.aggregate([
+    {
+      $match: {
+        shopId,
+        productId,
+        qty: { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalQty: { $sum: "$qty" },
+      },
+    },
+  ]);
+
+  if (!stockSummary || stockSummary.totalQty < qtyNeeded) {
+    throw { status: 400, message: "Insufficient stock" };
+  }
+
   const batches = await StockBatch.find({
     shopId,
     productId,
@@ -198,4 +218,5 @@ async function createBill({
 module.exports = {
   createBill,
   countBillsThisMonth,
+  deductStockForItem,
 };
