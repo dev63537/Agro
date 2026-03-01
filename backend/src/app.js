@@ -36,7 +36,7 @@ app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /* ===============================
-   STATIC FILES (PDF / SIGNATURES)
+   STATIC FILES
 ================================ */
 if ((process.env.STORAGE_DRIVER || "local") === "local") {
   const uploadPath =
@@ -61,14 +61,14 @@ app.use("/api/reports", reportsRoutes);
 app.use("/api/master/reports", masterReportsRoutes);
 
 /* ===============================
-   HEALTH CHECK
+   HEALTH
 ================================ */
 app.get("/health", (req, res) => {
   res.json({ status: "ok", time: new Date() });
 });
 
 /* ===============================
-   ERROR HANDLER (LAST)
+   ERROR HANDLER
 ================================ */
 app.use(errorHandler);
 
