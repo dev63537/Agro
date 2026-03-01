@@ -7,7 +7,7 @@ const SignaturePad = forwardRef(({ width = 400, height = 150 }, ref) => {
   useImperativeHandle(ref, () => ({
     getDataURL: () => {
       if (!sigRef.current) return null
-      return sigRef.current.getTrimmedCanvas().toDataURL('image/png')
+      return sigRef.current.toDataURL('image/png')
     },
     clear: () => sigRef.current && sigRef.current.clear()
   }))

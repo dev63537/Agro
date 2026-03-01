@@ -16,6 +16,26 @@ const { generateBillNo } = require("../utils/id.util");
 async function deductStockForItem(shopId, productId, qtyNeeded) {
   let remaining = qtyNeeded;
 
+  const [stockSummary] = await StockBatch.aggregate([
+    {
+      $match: {
+        shopId,
+        productId,
+        qty: { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalQty: { $sum: "$qty" },
+      },
+    },
+  ]);
+
+  if (!stockSummary || stockSummary.totalQty < qtyNeeded) {
+    throw { status: 400, message: "Insufficient stock" };
+  }
+
   const batches = await StockBatch.find({
     shopId,
     productId,
@@ -110,6 +130,14 @@ async function createBill({
     const unitPrice = Number(it.unitPrice || product.price);
     const gstPercent = Number(product.gstPercent || 0);
 
+    if (!Number.isFinite(qty) || qty <= 0) {
+      throw { status: 400, message: "Invalid item quantity" };
+    }
+
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw { status: 400, message: "Invalid item price" };
+    }
+
     const amount = qty * unitPrice;
     const gst = (amount * gstPercent) / 100;
 
@@ -198,4 +226,5 @@ async function createBill({
 module.exports = {
   createBill,
   countBillsThisMonth,
+  deductStockForItem,
 };
