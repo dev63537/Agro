@@ -1,0 +1,2505 @@
+FILE: D:\A saas test\frontend\src\App.jsx 
+ 
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
+import Login from "./pages/auth/Login";
+import MasterDashboard from "./pages/master/MasterDashboard";
+import ShopManagement from "./pages/shops/ShopManagement";
+import ShopBlocked from "./components/ShopBlocked";
+import ShopDashboard from "./pages/shopadmin/ShopDashboard";
+import CreateShop from "./pages/master/CreateShop";
+import Products from "./pages/shopadmin/Products";
+import ProductForm from "./pages/shopadmin/ProductForm";
+import StockBatches from "./pages/shopadmin/StockBatches";
+import StockForm from "./pages/shopadmin/StockForm";
+import Farmers from "./pages/shopadmin/Farmers";
+import FarmerForm from "./pages/shopadmin/FarmerForm";
+import Billing from "./pages/shopadmin/Billing";
+import InvoiceView from "./pages/shopadmin/InvoiceView";
+import Ledger from "./pages/shopadmin/Ledger";
+import Reports from "./pages/shopadmin/Reports";
+
+import MasterLayout from "./layouts/MasterLayout";
+import ShopLayout from "./layouts/ShopLayout";
+
+import { useAuth } from "./hooks/useAuth";
+
+/* ================================
+   ✅ PROTECTED ROUTE (REQUIRED)
+================================ */
+const ProtectedRoute = ({ children, role }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-gray-600">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  // Role check
+  if (role && user.role !== role && user.role !== "master") {
+    return <div className="p-6 text-red-600">Forbidden</div>;
+  }
+
+  // Shop admin block rules
+  if (user.role === "shop_admin") {
+    const shop = user.shop;
+
+    if (!shop) {
+      return (
+        <ShopBlocked reason="Shop information not found. Please contact admin." />
+      );
+    }
+
+    if (shop.status?.toUpperCase() === "SUSPENDED") {
+      return (
+        <ShopBlocked reason="Your shop has been suspended by the admin." />
+      );
+    }
+
+    if (shop.expiryDate && new Date(shop.expiryDate) < new Date()) {
+      return (
+        <ShopBlocked reason="Your shop subscription has expired." />
+      );
+    }
+  }
+
+  return children;
+};
+
+/* ================================
+   ✅ APP ROUTES
+================================ */
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+
+      {/* MASTER */}
+      <Route
+        path="/master"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <MasterDashboard />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/master/shops"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <ShopManagement />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/master/shops/create"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <CreateShop />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* SHOP ADMIN */}
+      <Route
+        path="/shop"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ShopDashboard />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Products />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products/new"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ProductForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products/:id/edit"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ProductForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/stock"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <StockBatches />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/stock/new"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <StockForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/farmers"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Farmers />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/farmers/:id/edit"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <FarmerForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/billing"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Billing />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/invoice/:id"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <InvoiceView />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/ledger"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Ledger />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/reports"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Reports />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\frontend_src.txt 
+ 
+FILE: D:\A saas test\frontend\src\App.jsx 
+ 
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
+import Login from "./pages/auth/Login";
+import MasterDashboard from "./pages/master/MasterDashboard";
+import ShopManagement from "./pages/shops/ShopManagement";
+import ShopBlocked from "./components/ShopBlocked";
+import ShopDashboard from "./pages/shopadmin/ShopDashboard";
+import CreateShop from "./pages/master/CreateShop";
+import Products from "./pages/shopadmin/Products";
+import ProductForm from "./pages/shopadmin/ProductForm";
+import StockBatches from "./pages/shopadmin/StockBatches";
+import StockForm from "./pages/shopadmin/StockForm";
+import Farmers from "./pages/shopadmin/Farmers";
+import FarmerForm from "./pages/shopadmin/FarmerForm";
+import Billing from "./pages/shopadmin/Billing";
+import InvoiceView from "./pages/shopadmin/InvoiceView";
+import Ledger from "./pages/shopadmin/Ledger";
+import Reports from "./pages/shopadmin/Reports";
+
+import MasterLayout from "./layouts/MasterLayout";
+import ShopLayout from "./layouts/ShopLayout";
+
+import { useAuth } from "./hooks/useAuth";
+
+/* ================================
+   ✅ PROTECTED ROUTE (REQUIRED)
+================================ */
+const ProtectedRoute = ({ children, role }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-gray-600">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  // Role check
+  if (role && user.role !== role && user.role !== "master") {
+    return <div className="p-6 text-red-600">Forbidden</div>;
+  }
+
+  // Shop admin block rules
+  if (user.role === "shop_admin") {
+    const shop = user.shop;
+
+    if (!shop) {
+      return (
+        <ShopBlocked reason="Shop information not found. Please contact admin." />
+      );
+    }
+
+    if (shop.status?.toUpperCase() === "SUSPENDED") {
+      return (
+        <ShopBlocked reason="Your shop has been suspended by the admin." />
+      );
+    }
+
+    if (shop.expiryDate && new Date(shop.expiryDate) < new Date()) {
+      return (
+        <ShopBlocked reason="Your shop subscription has expired." />
+      );
+    }
+  }
+
+  return children;
+};
+
+/* ================================
+   ✅ APP ROUTES
+================================ */
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+
+      {/* MASTER */}
+      <Route
+        path="/master"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <MasterDashboard />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/master/shops"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <ShopManagement />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/master/shops/create"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <CreateShop />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* SHOP ADMIN */}
+      <Route
+        path="/shop"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ShopDashboard />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Products />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products/new"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ProductForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/products/:id/edit"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ProductForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/stock"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <StockBatches />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/stock/new"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <StockForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/farmers"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Farmers />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/farmers/:id/edit"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <FarmerForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/billing"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Billing />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/invoice/:id"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <InvoiceView />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/ledger"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Ledger />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/reports"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Reports />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\frontend_src.txt 
+ 
+FILE: D:\A saas test\frontend\src\App.jsx 
+ 
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
+import Login from "./pages/auth/Login";
+import Mast 
+====================
+FILE: D:\A saas test\frontend\src\main.jsx 
+ 
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import ErrorBoundary from "./components/ErrorBoundary";
+import "./styles/globals.css";
+
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\BillConfirmModal.jsx 
+ 
+import React from "react";
+
+export default function BillConfirmModal({
+    open,
+    farmer,
+    items,
+    onCancel,
+    onConfirm,
+}) {
+    if (!open) return null;
+
+    const subTotal = items.reduce(
+        (s, it) => s + (it.qty * it.unitPrice || 0),
+        0
+    );
+
+    const gstTotal = items.reduce(
+        (s, it) =>
+            s + ((it.qty * it.unitPrice || 0) * (it.gstPercent || 0)) / 100,
+        0
+    );
+
+    const total = subTotal + gstTotal;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded shadow-lg w-full max-w-md p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                    Confirm Bill
+                </h2>
+
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                        <span>Farmer</span>
+                        <span className="font-medium">{farmer?.name}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                        <span>Items</span>
+                        <span>{items.length}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>₹ {subTotal.toFixed(2)}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                        <span>GST</span>
+                        <span>₹ {gstTotal.toFixed(2)}</span>
+                    </div>
+
+                    <hr />
+
+                    <div className="flex justify-between text-lg font-bold text-green-700">
+                        <span>Total</span>
+                        <span>₹ {total.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        className="px-4 py-2 rounded border"
+                        onClick={onCancel}
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        className="px-4 py-2 rounded bg-green-600 text-white"
+                        onClick={onConfirm}
+                    >
+                        Confirm & Create Bill
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\BillSummary.jsx 
+ 
+import React from 'react'
+
+export default function BillSummary({ items }) {
+  const itemCount = items.length
+
+  const subTotal = items.reduce(
+    (sum, it) => sum + (Number(it.qty) * Number(it.unitPrice) || 0),
+    0
+  )
+
+  const gstTotal = items.reduce(
+    (sum, it) =>
+      sum +
+      ((Number(it.qty) * Number(it.unitPrice) || 0) *
+        (Number(it.gstPercent) || 0)) /
+        100,
+    0
+  )
+
+  const total = subTotal + gstTotal
+
+  return (
+    <div className="p-4 bg-white rounded shadow max-w-md">
+      <h3 className="font-semibold text-lg mb-3">Bill Summary</h3>
+
+      <div className="flex justify-between text-sm mb-1">
+        <span>Items</span>
+        <span>{itemCount}</span>
+      </div>
+
+      <div className="flex justify-between text-sm mb-1">
+        <span>Subtotal</span>
+        <span>₹ {subTotal.toFixed(2)}</span>
+      </div>
+
+      <div className="flex justify-between text-sm mb-2">
+        <span>GST</span>
+        <span>₹ {gstTotal.toFixed(2)}</span>
+      </div>
+
+      <hr className="my-2" />
+
+      <div className="flex justify-between text-lg font-bold text-green-700">
+        <span>Total</span>
+        <span>₹ {total.toFixed(2)}</span>
+      </div>
+
+      {/* ⚠️ Hooks for future warnings */}
+      {total === 0 && (
+        <div className="mt-2 text-sm text-red-600">
+          ⚠ Please add items to generate bill
+        </div>
+      )}
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\EmptyState.jsx 
+ 
+import React from "react";
+
+export default function EmptyState({ title, message }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+        {title}
+      </h3>
+      <p>{message}</p>
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\ErrorBoundary.jsx 
+ 
+import React from "react";
+
+export default class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("UI Crash:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen flex flex-col items-center justify-center bg-gray-100 text-center p-6">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">
+            Something went wrong
+          </h1>
+          <p className="text-gray-600 mb-4">
+            The page crashed, but the app is still running.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\PDFViewer.jsx 
+ 
+import React from 'react'
+
+export default function PDFViewer({ url }) {
+  if (!url) return null
+  return (
+    <div className="bg-white p-4 rounded shadow">
+      <iframe src={url} title="Invoice" width="100%" height="600px" />
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\ProductSelector.jsx 
+ 
+import React from 'react'
+
+export default function ProductSelector({ products, value, onChange }) {
+  return (
+    <select value={value || ''} onChange={e => onChange(e.target.value)}>
+      <option value="">Select product</option>
+      {products.map(p => <option value={p._id} key={p._id}>{p.name} — {p.price}</option>)}
+    </select>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\ShopBlocked.jsx 
+ 
+import React from "react";
+import { useAuth } from "../hooks/useAuth";
+
+export default function ShopBlocked({ reason }) {
+  const { logout } = useAuth();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded shadow max-w-md text-center">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">
+          Access Blocked
+        </h2>
+
+        <p className="text-gray-700 mb-6">
+          {reason ||
+            "Your shop is currently not allowed to access the system."}
+        </p>
+
+        <button
+          onClick={logout}
+          className="px-4 py-2 bg-red-600 text-white rounded"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\SignaturePad.jsx 
+ 
+import React, { useRef, forwardRef, useImperativeHandle } from 'react'
+import SignaturePadLib from 'react-signature-canvas'
+
+const SignaturePad = forwardRef(({ width = 400, height = 150 }, ref) => {
+  const sigRef = useRef(null)
+
+  useImperativeHandle(ref, () => ({
+    getDataURL: () => {
+      if (!sigRef.current) return null
+      return sigRef.current.getTrimmedCanvas().toDataURL('image/png')
+    },
+    clear: () => sigRef.current && sigRef.current.clear()
+  }))
+
+  return (
+    <div className="border p-2 bg-white">
+      <SignaturePadLib ref={sigRef} penColor="black" canvasProps={{ width, height }} />
+    </div>
+  )
+})
+
+export default SignaturePad
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\Skeleton.jsx 
+ 
+import React from "react";
+
+export function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-lg shadow p-4 animate-pulse">
+      <div className="h-4 bg-gray-300 rounded w-1/2 mb-3"></div>
+      <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+    </div>
+  );
+}
+
+export function SkeletonChart() {
+  return (
+    <div className="bg-white rounded-lg shadow p-4 animate-pulse">
+      <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
+      <div className="h-40 bg-gray-300 rounded"></div>
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\StatCard.jsx 
+ 
+import React from "react";
+
+export default function StatCard({ title, value }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <div className="text-sm text-gray-500">{title}</div>
+      <div className="text-2xl font-bold text-gray-800 mt-1">
+        {value}
+      </div>
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\charts\LowStockChart.jsx 
+ 
+import React from "react";
+import Chart from "react-apexcharts";
+
+export default function LowStockChart({ data }) {
+  const options = {
+    labels: data.map((p) => p.name),
+    colors: ["#EF4444", "#F59E0B", "#10B981", "#3B82F6"],
+  };
+
+  const series = data.map((p) => p.qty);
+
+  return (
+    <div className="bg-white p-4 rounded shadow">
+      <h2 className="text-lg font-bold mb-2">Low Stock Alerts</h2>
+      <Chart options={options} series={series} type="donut" height={300} />
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\charts\SalesChart.jsx 
+ 
+import React from "react";
+import Chart from "react-apexcharts";
+
+export default function SalesChart({ data }) {
+  const options = {
+    chart: { id: "sales-chart" },
+    xaxis: { categories: data.map((d) => d.date) },
+    colors: ["#4F46E5"],
+  };
+
+  const series = [
+    {
+      name: "Sales",
+      data: data.map((d) => d.total),
+    },
+  ];
+
+  return (
+    <div className="bg-white p-4 rounded shadow">
+      <h2 className="text-lg font-bold mb-2">Sales Over Time</h2>
+      <Chart options={options} series={series} type="line" height={300} />
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\components\charts\TopFarmersChart.jsx 
+ 
+import React from "react";
+import Chart from "react-apexcharts";
+
+export default function TopFarmersChart({ data }) {
+  const options = {
+    chart: { id: "top-farmers" },
+    xaxis: { categories: data.map((f) => f.name) },
+    colors: ["#16A34A"],
+  };
+
+  const series = [
+    {
+      name: "Total Purchase",
+      data: data.map((f) => f.total),
+    },
+  ];
+
+  return (
+    <div className="bg-white p-4 rounded shadow">
+      <h2 className="text-lg font-bold mb-2">Top 5 Farmers</h2>
+      <Chart options={options} series={series} type="bar" height={300} />
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\context\AuthContext.jsx 
+ 
+import React, { createContext, useContext, useEffect, useState } from "react";
+import api from "../lib/apiClient";
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    setLoading(false);
+  }, []);
+
+  const login = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setUser(data.user);
+  };
+
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+/* 🔴 THIS EXPORT WAS MISSING OR WRONG */
+export const useAuthContext = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuthContext must be used inside AuthProvider");
+  }
+  return ctx;
+};
+ 
+====================
+FILE: D:\A saas test\frontend\src\hooks\useAuth.js 
+ 
+import { useAuthContext } from '../context/AuthContext'
+export const useAuth = () => useAuthContext()
+     
+====================
+FILE: D:\A saas test\frontend\src\hooks\reports\useMasterReports.js 
+ 
+import { useQuery } from "@tanstack/react-query";
+import api from "../../lib/apiClient";
+
+// 🔹 REFRESH EVERY 10 SECONDS
+const LIVE_INTERVAL = 10000;
+
+export const useMasterSales = () =>
+  useQuery({
+    queryKey: ["master-sales"],
+    queryFn: async () => {
+      const res = await api.get("/master/reports/sales");
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    refetchInterval: LIVE_INTERVAL,
+    staleTime: 0,
+  });
+
+export const useMasterTopFarmers = () =>
+  useQuery({
+    queryKey: ["master-top-farmers"],
+    queryFn: async () => {
+      const res = await api.get("/master/reports/farmers");
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    refetchInterval: LIVE_INTERVAL,
+    staleTime: 0,
+  });
+
+export const useMasterShopCount = () =>
+  useQuery({
+    queryKey: ["master-shop-count"],
+    queryFn: async () => {
+      const res = await api.get("/master/reports/shops/count");
+      return res.data.total || 0;
+    },
+  });
+
+ 
+====================
+FILE: D:\A saas test\frontend\src\hooks\reports\useReports.js 
+ 
+import { useQuery } from "@tanstack/react-query";
+import api from "../../lib/apiClient";
+
+export const useSalesReport = () =>
+  useQuery({
+    queryKey: ["shop-sales"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/reports/sales");
+        
+        // Handle different response structures
+        if (res?.data?.bills) {
+          return res.data; // Already has bills, total, count
+        } else if (res?.data?.data?.bills) {
+          return res.data.data; // Nested structure
+        } else {
+          return {
+            total: 0,
+            count: 0,
+            bills: [],
+          };
+        }
+      } catch (error) {
+        console.error("Sales report error:", error);
+        return {
+          total: 0,
+          count: 0,
+          bills: [],
+        };
+      }
+    },
+    retry: 1,
+  });
+
+export const useTopFarmers = () =>
+  useQuery({
+    queryKey: ["top-farmers"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/reports/farmers/top");
+        return res?.data || [];
+      } catch (error) {
+        console.error("Top farmers error:", error);
+        return [];
+      }
+    },
+    retry: 1,
+  });
+
+export const useLowStock = () =>
+  useQuery({
+    queryKey: ["low-stock"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/reports/low-stock");
+        return res?.data || [];
+      } catch (error) {
+        console.error("Low stock error:", error);
+        return [];
+      }
+    },
+    retry: 1,
+  });  
+====================
+FILE: D:\A saas test\frontend\src\layouts\MasterLayout.jsx 
+ 
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+
+export default function MasterLayout({ children }) {
+  const { user, logout } = useAuth()
+  return (
+    <div className="min-h-screen flex">
+      <aside className="w-64 bg-white border-r p-4">
+        <h2 className="text-xl font-bold mb-4">Master Admin</h2>
+        <nav className="space-y-2">
+          <Link to="/master" className="block p-2 rounded hover:bg-gray-100">Dashboard</Link>
+          <Link to="/master/shops" className="block p-2 rounded hover:bg-gray-100">Shops</Link>
+          <Link to="/master/shops/create" className="block p-2 rounded hover:bg-gray-100">Create Shop</Link>
+        </nav>
+        <div className="mt-6">
+          <button onClick={logout} className="btn-danger w-full">Logout</button>
+        </div>
+      </aside>
+      <main className="flex-1 p-6 bg-gray-50">
+        <header className="mb-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-semibold">Agro Billing SaaS</h1>
+            <div>{user?.name}</div>
+          </div>
+        </header>
+        <section>{children}</section>
+      </main>
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\layouts\ShopLayout.jsx 
+ 
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+
+export default function ShopLayout({ children }) {
+  const { user, logout } = useAuth()
+  return (
+    <div className="min-h-screen flex">
+      <aside className="w-64 bg-white border-r p-4">
+        <h2 className="text-xl font-bold mb-4">Shop Admin</h2>
+        <nav className="space-y-2">
+          <Link to="/shop" className="block p-2 rounded hover:bg-gray-100">Dashboard</Link>
+          <Link to="/shop/products" className="block p-2 rounded hover:bg-gray-100">Products</Link>
+          <Link to="/shop/stock" className="block p-2 rounded hover:bg-gray-100">Stock Batches</Link>
+          <Link to="/shop/farmers" className="block p-2 rounded hover:bg-gray-100">Farmers</Link>
+          <Link to="/shop/billing" className="block p-2 rounded hover:bg-gray-100">Billing</Link>
+          <Link to="/shop/ledger" className="block p-2 rounded hover:bg-gray-100">Ledger</Link>
+          <Link to="/shop/reports" className="block p-2 rounded hover:bg-gray-100">Reports</Link>
+        </nav>
+        <div className="mt-6">
+          <button onClick={logout} className="btn-danger w-full">Logout</button>
+        </div>
+      </aside>
+      <main className="flex-1 p-6 bg-gray-50">
+        <header className="mb-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-semibold">Shop Dashboard</h1>
+            <div>{user?.name}</div>
+          </div>
+        </header>
+        <section>{children}</section>
+      </main>
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\lib\apiClient.js 
+ 
+// frontend/src/lib/apiClient.js
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE || "http://localhost:4000/api",
+  headers: { "Content-Type": "application/json" },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // ✅ ADD SHOP CONTEXT 
+  if (user?.shopId) {
+    config.headers["x-shop-id"] = user.shopId;
+  }
+
+  return config;
+});
+
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    let message = "Something went wrong";
+
+    if (error.response?.data?.error) {
+      message = error.response.data.error;
+    } else if (error.response?.data?.message) {
+      message = error.response.data.message;
+    } else if (error.message) {
+      message = error.message;
+    }
+
+    console.error("API Error:", message);
+
+    // Optional: simple alert for now (we’ll upgrade to toast later)
+    alert(message);
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\auth\Login.jsx 
+ 
+// frontend/src/pages/auth/Login.jsx
+import React, { useState } from "react";
+import api from "../../lib/apiClient";
+import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../context/AuthContext";
+
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAuthContext();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Submitting login:", { email });
+
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      console.log("Login response status:", res.status);
+      console.log("Login response data:", res.data);
+
+      if (!res.data || !res.data.token) {
+        alert(
+          "Login failed: token missing in response. See console for response."
+        );
+
+        console.log("LOGIN SUCCESS — RES.DATA →", res.data);
+        console.log("ROLE =", res.data.user.role);
+
+        return;
+      }
+
+      // call context login
+      login({
+        token: res.data.token,
+        user: res.data.user,
+      });
+
+      // persist token (AuthContext might also do this; this is safe redundancy)
+      localStorage.setItem("token", res.data.token);
+      console.log("LOGIN RESPONSE:", res.data);
+      console.log("NAVIGATING TO DASHBOARD...");
+
+      // navigate based on role
+      if (res.data.user.role === "master") {
+        navigate("/master");
+      } else {
+        navigate("/shop");
+      }
+    } catch (err) {
+      console.error("Login request error:", err);
+      const message =
+        err?.response?.data?.error ||
+        err?.response?.data ||
+        err.message ||
+        "Unknown error";
+      alert(`Login failed: ${message}`);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default Login;
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\master\CreateShop.jsx 
+ 
+import React, { useState } from "react";
+import api from "../../lib/apiClient";
+
+export default function CreateShop() {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [plan, setPlan] = useState("free");
+  const [result, setResult] = useState(null);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/master/shops", {
+        name,
+        code,
+        ownerName,
+        email,
+        phone,
+        plan,
+      });
+      setResult(res.data.shopAdminCredentials);
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to create shop");
+    }
+  };
+
+  return (
+    <div className="max-w-lg bg-white p-6 rounded shadow">
+      <h2 className="text-xl font-bold mb-4">Create New Shop</h2>
+
+      <form onSubmit={submit} className="space-y-3">
+        <input className="border p-2 w-full" placeholder="Shop Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="border p-2 w-full" placeholder="Shop Code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <input className="border p-2 w-full" placeholder="Owner Name" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
+        <input className="border p-2 w-full" placeholder="Owner Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="border p-2 w-full" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+        <select value={plan} onChange={(e) => setPlan(e.target.value)} className="border p-2 w-full">
+          <option value="free">Free</option>
+          <option value="pro">Pro</option>
+        </select>
+
+        <button className="btn-primary w-full">Create Shop</button>
+      </form>
+
+      {result && (
+        <div className="mt-4 p-4 bg-green-100 rounded">
+          <h3 className="font-bold">Shop Admin Created</h3>
+          <p><strong>Email:</strong> {result.email}</p>
+          <p><strong>Password:</strong> {result.password}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\master\MasterDashboard.jsx 
+ 
+import React from "react";
+import StatCard from "../../components/StatCard";
+import SalesChart from "../../components/charts/SalesChart";
+import TopFarmersChart from "../../components/charts/TopFarmersChart";
+import { SkeletonCard, SkeletonChart } from "../../components/Skeleton";
+import EmptyState from "../../components/EmptyState";
+import { useMasterShopCount } from "../../hooks/reports/useMasterReports";
+
+
+import {
+  useMasterSales,
+  useMasterTopFarmers,
+} from "../../hooks/reports/useMasterReports";
+
+export default function MasterDashboard() {
+  // 🔹 Queries
+  const { data: salesDataRaw, isLoading: salesLoading } = useMasterSales();
+  const { data: farmersRaw, isLoading: farmersLoading } =
+    useMasterTopFarmers();
+
+  const isLoading = salesLoading || farmersLoading;
+
+  // 🔹 FORCE SAFE ARRAYS
+  const sales = Array.isArray(salesDataRaw) ? salesDataRaw : [];
+  const farmers = Array.isArray(farmersRaw) ? farmersRaw : [];
+  const { data: totalShops = 0 } = useMasterShopCount();
+
+
+  // 🔹 Cards
+  const totalRevenue = sales.reduce(
+    (sum, s) => sum + (s.total || 0),
+    0
+  );
+
+  const totalBills = sales.reduce(
+    (sum, s) => sum + (s.count || 0),
+    0
+  );
+
+  const totalFarmers = farmers.length;
+
+  // 🔹 Charts
+  const salesChartData = sales.map((s) => ({
+    date: `${s.month}/${s.year}`,
+    total: s.total || 0,
+  }));
+
+  const farmerChartData = farmers.map((f) => ({
+    name: f.name || "Unknown",
+    total: f.total || 0,
+  }));
+
+  return (
+    <div className="space-y-6">
+      {/* ===== TOP CARDS ===== */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatCard title="Total Revenue" value={`₹ ${totalRevenue}`} />
+          <StatCard title="Total Shops" value={totalShops} />
+          <StatCard title="Total Farmers" value={totalFarmers} />
+          <StatCard title="Total Bills" value={totalBills} />  
+        </div>
+      )}
+
+      <h2 className="text-xl font-semibold">Master Dashboard</h2>
+
+      {/* ===== CHARTS ===== */}
+      {isLoading ? (
+        <>
+          <SkeletonChart />
+          <SkeletonChart />
+        </>
+      ) : (
+        <>
+          {salesChartData.length === 0 ? (
+            <EmptyState
+              title="No sales yet"
+              message="Sales data will appear once shops create bills."
+            />
+          ) : (
+            <SalesChart data={salesChartData} />
+          )}
+
+          {farmerChartData.length === 0 ? (
+            <EmptyState
+              title="No farmers yet"
+              message="Top farmers will appear once sales are recorded."
+            />
+          ) : (
+            <TopFarmersChart data={farmerChartData} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\Billing.jsx 
+ 
+import React, { useEffect, useRef, useState } from "react";
+import api from "../../lib/apiClient";
+import ProductSelector from "../../components/ProductSelector";
+import SignaturePad from "../../components/SignaturePad";
+import BillSummary from "../../components/BillSummary";
+import { useNavigate } from "react-router-dom";
+import BillConfirmModal from "../../components/BillConfirmModal";
+import { useQueryClient } from "@tanstack/react-query";
+
+export default function Billing() {
+  const [products, setProducts] = useState([]);
+  const [farmers, setFarmers] = useState([]);
+  const [farmerId, setFarmerId] = useState("");
+  const [items, setItems] = useState([]);
+  const [paymentType, setPaymentType] = useState("cash");
+  const [paidAmount, setPaidAmount] = useState(0);
+
+  const sigRef = useRef(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [pRes, fRes] = await Promise.all([
+          api.get("/products"),
+          api.get("/farmers"),
+        ]);
+        setProducts(pRes.data.products || []);
+        setFarmers(fRes.data.farmers || []);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, []);
+
+  const addItem = () => {
+    setItems((prev) => [
+      ...prev,
+      { productId: "", qty: 1, unitPrice: 0, gstPercent: 0 },
+    ]);
+  };
+
+  const updateItem = (idx, data) => {
+    setItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, ...data } : it))
+    );
+  };
+
+  const removeItem = (idx) => {
+    setItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const onProductChange = (idx, productId) => {
+    const p = products.find((x) => x._id === productId);
+    updateItem(idx, {
+      productId,
+      unitPrice: p?.price || 0,
+      gstPercent: p?.gstPercent || 0,
+    });
+  };
+
+  const submit = () => {
+    if (!farmerId) return alert("Select farmer");
+    if (items.length === 0) return alert("Add items");
+
+    const sig = sigRef.current?.getDataURL();
+    if (!sig) return alert("Please sign");
+
+    setShowConfirm(true);
+  };
+
+  const confirmCreateBill = async () => {
+    try {
+      const signatureBase64 = sigRef.current?.getDataURL();
+
+      const payload = {
+        farmerId,
+        items: items.map((it) => ({
+          productId: it.productId,
+          qty: Number(it.qty),
+          unitPrice: Number(it.unitPrice),
+        })),
+        paymentType,
+        paidAmount: paymentType === "pending" ? 0 : Number(paidAmount),
+        signatureBase64,
+      };
+
+      const res = await api.post("/billing", payload);
+
+      await queryClient.invalidateQueries({ queryKey: ["shop-sales"] });
+      await queryClient.invalidateQueries({ queryKey: ["top-farmers"] });
+      await queryClient.invalidateQueries({ queryKey: ["low-stock"] });
+
+      navigate(`/shop/invoice/${res.data.bill._id}`);
+    } catch (err) {
+      alert(err.response?.data?.error || err.message);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-6">
+      <div>
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold mb-2">Billing</h3>
+
+          <label>Farmer</label>
+          <select value={farmerId} onChange={(e) => setFarmerId(e.target.value)}>
+            <option value="">Select farmer</option>
+            {farmers.map((f) => (
+              <option key={f._id} value={f._id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+
+          {items.map((it, idx) => (
+            <div key={idx} className="border p-2 mt-2">
+              <ProductSelector
+                products={products}
+                value={it.productId}
+                onChange={(v) => onProductChange(idx, v)}
+              />
+              <input
+                type="number"
+                value={it.qty}
+                onChange={(e) =>
+                  updateItem(idx, { qty: Number(e.target.value) })
+                }
+              />
+              <button onClick={() => removeItem(idx)}>Remove</button>
+            </div>
+          ))}
+
+          <button onClick={addItem}>Add Item</button>
+        </div>
+
+        <div className="bg-white p-4 rounded shadow mt-4">
+          <h3>Payment</h3>
+
+          <select
+            value={paymentType}
+            onChange={(e) => setPaymentType(e.target.value)}
+          >
+            <option value="cash">Cash</option>
+            <option value="online">Online</option>
+            <option value="pending">Pending</option>
+          </select>
+
+          {paymentType !== "pending" && (
+            <input
+              type="number"
+              placeholder="Paid Amount"
+              value={paidAmount}
+              onChange={(e) => setPaidAmount(e.target.value)}
+            />
+          )}
+        </div>
+
+        <div className="bg-white p-4 rounded shadow mt-4">
+          <SignaturePad ref={sigRef} />
+          <button onClick={submit}>Create Bill</button>
+        </div>
+      </div>
+
+      <div>
+        <BillSummary
+          items={items.map((i) => ({
+            qty: i.qty,
+            unitPrice: i.unitPrice,
+            gstPercent: i.gstPercent,
+          }))}
+        />
+      </div>
+
+      <BillConfirmModal
+        open={showConfirm}
+        farmer={farmers.find((f) => f._id === farmerId)}
+        items={items}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={confirmCreateBill}
+      />
+    </div>
+  );
+} 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\FarmerForm.jsx 
+ 
+import React, { useEffect, useState } from "react";
+import api from "../../lib/apiClient";
+import { useNavigate, useParams } from "react-router-dom";
+
+export default function FarmerForm() {
+  const { id } = useParams(); // 👈 edit mode if exists
+  const navigate = useNavigate();
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [village, setVillage] = useState("");
+  const [active, setActive] = useState(true);
+
+  // 🔄 Load farmer for edit
+  useEffect(() => {
+    if (!id) return;
+
+    (async () => {
+      try {
+        const res = await api.get(`/farmers/${id}`);
+        const f = res.data.farmer;
+
+        setName(f.name);
+        setPhone(f.phone || "");
+        setVillage(f.village || "");
+        setActive(f.active);
+      } catch (err) {
+        alert("Failed to load farmer");
+      }
+    })();
+  }, [id]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = { name, phone, village, active };
+
+      if (id) {
+        await api.patch(`/farmers/${id}`, payload);
+      } else {
+        await api.post("/farmers", payload);
+      }
+
+      navigate("/shop/farmers");
+    } catch (err) {
+      alert(err.response?.data?.error || err.message);
+    }
+  };
+
+  return (
+    <div className="max-w-lg">
+      <h2 className="text-xl font-semibold mb-4">
+        {id ? "Edit Farmer" : "Add Farmer"}
+      </h2>
+
+      <form onSubmit={submit} className="space-y-3 bg-white p-4 rounded shadow">
+        <div>
+          <label className="block mb-1">Name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block mb-1">Phone</label>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block mb-1">Village</label>
+          <input value={village} onChange={(e) => setVillage(e.target.value)} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={(e) => setActive(e.target.checked)}
+          />
+          <span>Active</span>
+        </div>
+
+        <button className="btn-primary">
+          {id ? "Update Farmer" : "Save Farmer"}
+        </button>
+      </form>
+    </div>
+  );
+}
+     
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\Farmers.jsx 
+ 
+import React from 'react'
+import api from '../../lib/apiClient'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+
+export default function Farmers() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['farmers'],
+    queryFn: async () => {
+      const res = await api.get('/farmers')
+      return res.data.farmers
+    }
+  })
+
+  if (isLoading) return <div>Loading farmers...</div>
+  if (error) return <div>Error loading farmers</div>
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Farmers</h2>
+        <Link to="/shop/farmers/new" className="btn-primary">
+          Add Farmer
+        </Link>
+      </div>
+
+      {data.length === 0 ? (
+        <div className="text-gray-500">No farmers found</div>
+      ) : (
+        <div className="space-y-3">
+          {data.map(f => (
+            <div key={f._id} className="p-3 bg-white rounded shadow flex justify-between">
+              <div>
+                <div className="font-semibold">{f.name}</div>
+                <div className="text-sm text-gray-600">
+                  ID: {f._id}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {f.village} | {f.phone}
+                </div>
+                <div className={`text-sm ${f.active ? "text-green-600" : "text-red-600"}`}>
+                  {f.active ? "Active" : "Inactive"}
+                </div>
+              </div>
+
+              <div>
+                <Link to={`/shop/farmers/${f._id}/edit`} className="text-blue-600">
+                  Edit
+                </Link>
+              </div>
+            </div>
+
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\InvoiceView.jsx 
+ 
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../../lib/apiClient";
+
+export default function InvoiceView() {
+  const { id } = useParams();
+  const [bill, setBill] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBill() {
+      try {
+        const res = await api.get(`/billing/${id}`);
+        setBill(res.data.bill);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBill();
+  }, [id]);
+
+  if (loading) return <div>Loading invoice...</div>;
+  if (!bill) return <div>Invoice not found</div>;
+
+  return (
+    <div className="bg-white p-6 rounded shadow max-w-xl">
+      <h2 className="text-xl font-bold mb-2">
+        Invoice {bill.billNo}
+      </h2>
+
+      <div className="mb-2">
+        <strong>Total:</strong> ₹{bill.totalAmount}
+      </div>
+
+      {bill.invoiceUrl && (
+        <a
+          href={`http://localhost:4000${bill.invoiceUrl}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open PDF
+        </a>
+      )}
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\Ledger.jsx 
+ 
+import React, { useState } from 'react'
+import api from '../../lib/apiClient'
+
+export default function Ledger() {
+  const [farmerId, setFarmerId] = useState('')
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [ledger, setLedger] = useState(null)
+
+  const load = async () => {
+    if (!farmerId) return alert('Select farmer id in header (set shop header).')
+    try {
+      const res = await api.get(`/ledger/${farmerId}/${year}`)
+      setLedger(res.data.ledger)
+    } catch (err) {
+      alert(err.response?.data?.error || err.message)
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Ledger</h2>
+      <div className="mb-4 bg-white p-4 rounded shadow">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label>Farmer ID</label>
+            <input value={farmerId} onChange={e=>setFarmerId(e.target.value)} placeholder="Enter farmer ID" />
+          </div>
+          <div>
+            <label>Year</label>
+            <input type="number" value={year} onChange={e=>setYear(e.target.value)} />
+          </div>
+          <div className="flex items-end">
+            <button className="btn-primary" onClick={load}>Load Ledger</button>
+          </div>
+        </div>
+      </div>
+
+      {ledger && (
+        <div className="bg-white p-4 rounded shadow">
+          <div>Year: {ledger.year}</div>
+          <div>Total Due: {ledger.totalDue}</div>
+          <div>Transactions:</div>
+          <ul className="list-disc pl-6">
+            {ledger.transactions.map((t, i) => <li key={i}>{t.type} — {t.amount} — {new Date(t.date).toLocaleString()}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\ProductForm.jsx 
+ 
+import React, { useEffect, useState } from "react";
+import api from "../../lib/apiClient";
+import { useNavigate, useParams } from "react-router-dom";
+
+export default function ProductForm() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    sku: "",
+    unit: "kg",
+    price: "",
+    gstPercent: "",
+    category: "",
+    description: "",
+  });
+
+  const isEdit = Boolean(id);
+
+  // ✅ LOAD PRODUCT FOR EDIT
+  useEffect(() => {
+    if (!isEdit) return;
+
+    (async () => {
+      try {
+        const res = await api.get(`/products/${id}`);
+        setForm({
+          name: res.data.product.name || "",
+          sku: res.data.product.sku || "",
+          unit: res.data.product.unit || "kg",
+          price: res.data.product.price || "",
+          gstPercent: res.data.product.gstPercent || "",
+          category: res.data.product.category || "",
+          description: res.data.product.description || "",
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [id]);
+
+  const onChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const submit = async () => {
+    try {
+      if (isEdit) {
+        await api.put(`/products/${id}`, form);
+      } else {
+        await api.post("/products", form);
+      }
+      navigate("/shop/products");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  return (
+    <div className="max-w-xl bg-white p-4 rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">
+        {isEdit ? "Edit Product" : "Add Product"}
+      </h2>
+
+      <input name="name" placeholder="Product Name" value={form.name} onChange={onChange} />
+      <input name="sku" placeholder="SKU" value={form.sku} onChange={onChange} />
+      <input name="unit" placeholder="Unit (kg, ltr)" value={form.unit} onChange={onChange} />
+      <input name="price" type="number" placeholder="Price" value={form.price} onChange={onChange} />
+      <input name="gstPercent" type="number" placeholder="GST %" value={form.gstPercent} onChange={onChange} />
+      <input name="category" placeholder="Category" value={form.category} onChange={onChange} />
+      <textarea name="description" placeholder="Description" value={form.description} onChange={onChange} />
+
+      <button className="btn-primary mt-3" onClick={submit}>
+        {isEdit ? "Update Product" : "Create Product"}
+      </button>
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\Products.jsx 
+ 
+import React from 'react'
+import api from '../../lib/apiClient'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+
+export default function Products() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const res = await api.get('/products')
+      return res.data.products
+    }
+  })
+
+  if (isLoading) return <div>Loading products...</div>
+  if (error) return <div>Error loading products</div>
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Products</h2>
+        <Link to="/shop/products/new" className="btn-primary">
+          Add Product
+        </Link>
+      </div>
+
+      {data.length === 0 ? (
+        <div className="text-gray-500">No products found</div>
+      ) : (
+        <div className="space-y-3">
+          {data.map(p => (
+            <div key={p._id} className="p-3 bg-white rounded shadow flex justify-between">
+              <div>
+                <div className="font-semibold">{p.name}</div>
+                <div className="text-sm text-gray-600">
+                  Price: ₹{p.price} / {p.unit}
+                </div>
+              </div>
+              <Link to={`/shop/products/${p._id}/edit`} className="text-blue-600">
+                Edit
+              </Link>
+
+
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\Reports.jsx 
+ 
+import React, { useEffect, useState } from 'react'
+import api from '../../lib/apiClient'
+
+export default function Reports() {
+  const [sales, setSales] = useState(null)
+
+  useEffect(()=> {
+    (async ()=> {
+      try {
+        const res = await api.get('/reports/sales')
+        setSales(res.data)
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+  }, [])
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Reports</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold">Sales</h3>
+          <div>Total: {sales?.total || 0}</div>
+          <div>Count: {sales?.count || 0}</div>
+        </div>
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold">Stock</h3>
+          <div><button onClick={async ()=> {
+            const res = await api.get('/reports/stock')
+            alert(`Batches: ${res.data.batches.length}`)
+          }} className="btn-primary">Refresh Stock</button></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\ShopDashboard.jsx 
+ 
+import React from "react";
+import EmptyState from "../../components/EmptyState";
+import SalesChart from "../../components/charts/SalesChart";
+import TopFarmersChart from "../../components/charts/TopFarmersChart";
+import StatCard from "../../components/StatCard";
+import LowStockChart from "../../components/charts/LowStockChart";
+import { SkeletonCard, SkeletonChart } from "../../components/Skeleton";
+
+import {
+  useSalesReport,
+  useTopFarmers,
+  useLowStock,
+} from "../../hooks/reports/useReports";
+
+export default function ShopDashboard() {
+  const { data: salesRes, isLoading: salesLoading } = useSalesReport();
+  const { data: farmersRes, isLoading: farmersLoading } = useTopFarmers();
+  const { data: lowStockRes, isLoading: lowStockLoading } = useLowStock();
+
+  const isLoading = salesLoading || farmersLoading || lowStockLoading;
+
+  const salesDataObj = salesRes || { total: 0, count: 0, bills: [] };
+  const salesBills = salesDataObj.bills;
+
+
+  const farmers = Array.isArray(farmersRes) ? farmersRes : [];
+  const lowStock = Array.isArray(lowStockRes) ? lowStockRes : [];
+
+  // ✅ Transform safely
+  const salesData = salesBills.map((b) => ({
+    date: new Date(b.createdAt).toLocaleDateString(),
+    total: b.totalAmount || 0,
+  }));
+
+  const farmerData = farmers.map((f) => ({
+    name: f.farmer?.name || "Unknown",
+    total: f.total || 0,
+  }));
+
+  const lowStockData = lowStock.map((p) => ({
+    name: p.name || "Unknown",
+    qty: p.qty || 0,
+  }));
+
+  const totalSales = salesBills.reduce(
+    (sum, b) => sum + (b.totalAmount || 0),
+    0
+  );
+
+  const totalBills = salesBills.length;
+  const totalFarmers = farmers.length;
+  const lowStockCount = lowStock.length;
+
+
+  console.log("SALES API RESPONSE:", salesRes);
+  return (
+    <div className="space-y-6">
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatCard title="Total Sales" value={`₹ ${totalSales}`} />
+          <StatCard title="Total Bills" value={totalBills} />
+          <StatCard title="Farmers" value={totalFarmers} />
+          <StatCard title="Low Stock Items" value={lowStockCount} />
+        </div>
+      )}
+
+      {isLoading ? (
+        <>
+          <SkeletonChart />
+          <SkeletonChart />
+          <SkeletonChart />
+        </>
+      ) : (
+        <>
+          {!isLoading && salesBills.length === 0 ? (
+            <EmptyState
+              title="No sales yet"
+              message="Create your first bill to see sales data here."
+            />
+          ) : (
+            <SalesChart
+              data={
+                salesData.length ? salesData : [{ date: "No data", total: 0 }]
+              }
+            />
+          )}
+
+          {!isLoading && farmers.length === 0 ? (
+            <EmptyState
+              title="No farmers found"
+              message="Add farmers to start tracking purchases."
+            />
+          ) : (
+            <TopFarmersChart
+              data={
+                farmerData.length ? farmerData : [{ name: "No data", total: 0 }]
+              }
+            />
+          )}
+
+          {!isLoading && lowStock.length === 0 ? (
+            <EmptyState
+              title="No low stock items"
+              message="All products have sufficient stock."
+            />
+          ) : (
+            <LowStockChart
+              data={
+                lowStockData.length
+                  ? lowStockData
+                  : [{ name: "No low stock", qty: 0 }]
+              }
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\StockBatches.jsx 
+ 
+import React, { useEffect, useState } from 'react'
+import api from '../../lib/apiClient'
+import { Link } from 'react-router-dom'
+
+export default function StockBatches() {
+  const [batches, setBatches] = useState([])
+
+  useEffect(()=> {
+    (async ()=> {
+      try {
+        const res = await api.get('/stock')
+        setBatches(res.data.batches || [])
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+  }, [])
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Stock Batches</h2>
+        <Link to="/shop/stock/new" className="btn-primary">Add Stock Batch</Link>
+      </div>
+      <div className="space-y-3">
+        {batches.map(b => (
+          <div key={b._id} className="p-3 bg-white rounded shadow flex justify-between">
+            <div>
+              <div className="font-semibold">{b.batchNo || 'Batch'}</div>
+              <div className="text-sm text-gray-600">Product: {b.productId?.name || b.productId}</div>
+              <div className="text-sm text-gray-600">Qty: {b.qty} | Expiry: {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString() : '—'}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shopadmin\StockForm.jsx 
+ 
+import React, { useEffect, useState } from 'react'
+import api from '../../lib/apiClient'
+import { useNavigate } from 'react-router-dom'
+
+export default function StockForm() {
+  const [products, setProducts] = useState([])
+  const [productId, setProductId] = useState('')
+  const [qty, setQty] = useState('')
+  const [batchNo, setBatchNo] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const navigate = useNavigate()
+
+  useEffect(()=>{
+    (async ()=> {
+      try {
+        const res = await api.get('/products')
+        setProducts(res.data.products || [])
+      } catch (err) {
+        console.error(err)
+      }
+    })()
+  }, [])
+
+  const submit = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/stock', { productId, qty: Number(qty), batchNo, expiryDate })
+      navigate('/shop/stock')
+    } catch (err) {
+      alert(err.response?.data?.error || err.message)
+    }
+  }
+
+  return (
+    <div className="max-w-lg">
+      <h2 className="text-xl font-semibold mb-4">Add Stock</h2>
+      <form onSubmit={submit} className="space-y-3 bg-white p-4 rounded shadow">
+        <div>
+          <label className="block mb-1">Product</label>
+          <select value={productId} onChange={e=>setProductId(e.target.value)}>
+            <option value="">Select product</option>
+            {products.map(p => <option value={p._id} key={p._id}>{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block mb-1">Qty</label>
+          <input value={qty} onChange={e=>setQty(e.target.value)} />
+        </div>
+        <div>
+          <label className="block mb-1">Batch No</label>
+          <input value={batchNo} onChange={e=>setBatchNo(e.target.value)} />
+        </div>
+        <div>
+          <label className="block mb-1">Expiry Date</label>
+          <input type="date" value={expiryDate} onChange={e=>setExpiryDate(e.target.value)} />
+        </div>
+        <div>
+          <button className="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  )
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\pages\shops\ShopManagement.jsx 
+ 
+import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../../lib/apiClient";
+
+export default function ShopManagement() {
+  const queryClient = useQueryClient();
+
+  // ✅ Fetch shops (MASTER)
+  const fetchShops = async () => {
+    const res = await api.get("/master/shops");
+    return res.data.shops;
+  };
+
+  const { data: shops = [], isLoading, error } = useQuery({
+    queryKey: ["master-shops"],
+    queryFn: fetchShops,
+  });
+
+  // ✅ Update shop (status / plan / expiry)
+  const updateShop = useMutation({
+    mutationFn: ({ shopId, payload }) =>
+      api.patch(`/master/shops/${shopId}`, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["master-shops"]);
+    },
+  });
+
+  if (isLoading) {
+    return <div className="p-6">Loading shops...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">Failed to load shops</div>;
+  }
+
+  return (
+    <div className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Shop Management</h2>
+
+      {shops.length === 0 ? (
+        <div className="text-gray-500">No shops found</div>
+      ) : (
+        <table className="w-full border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2">Name</th>
+              <th className="border p-2">Status</th>
+              <th className="border p-2">Plan</th>
+              <th className="border p-2">Expiry</th>
+              <th className="border p-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shops.map((shop) => (
+              <tr key={shop._id}>
+                <td className="border p-2">
+                  {shop.name} ({shop.code})
+                </td>
+
+                <td className="border p-2">
+                  {shop.status === "ACTIVE" ? "🟢 ACTIVE" : "🔴 SUSPENDED"}
+                </td>
+
+                <td className="border p-2">
+                  <select
+                    value={shop.plan || "FREE"}
+                    onChange={(e) =>
+                      updateShop.mutate({
+                        shopId: shop._id,
+                        payload: { plan: e.target.value },
+                      })
+                    }
+                  >
+                    <option value="FREE">FREE</option>
+                    <option value="BASIC">BASIC</option>
+                    <option value="PRO">PRO</option>
+                  </select>
+                </td>
+
+                <td className="border p-2">
+                  <input
+                    type="date"
+                    value={shop.expiryDate?.slice(0, 10) || ""}
+                    onChange={(e) =>
+                      updateShop.mutate({
+                        shopId: shop._id,
+                        payload: { expiryDate: e.target.value },
+                      })
+                    }
+                  />
+                </td>
+
+                <td className="border p-2">
+                  <button
+                    className="px-3 py-1 border rounded"
+                    onClick={() =>
+                      updateShop.mutate({
+                        shopId: shop._id,
+                        payload: {
+                          status:
+                            shop.status === "ACTIVE"
+                              ? "SUSPENDED"
+                              : "ACTIVE",
+                        },
+                      })
+                    }
+                  >
+                    {shop.status === "ACTIVE" ? "Suspend" : "Activate"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+ 
+====================
+FILE: D:\A saas test\frontend\src\styles\globals.css 
+ 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+    min-height: 100%;
+    background-color: #f5f5f5;
+    color: #111;
+} 
+====================

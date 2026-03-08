@@ -191,6 +191,17 @@ export default function App() {
       />
 
       <Route
+        path="/shop/farmers/new"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <FarmerForm />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/shop/farmers/:id/edit"
         element={
           <ProtectedRoute role="shop_admin">
@@ -245,8 +256,7 @@ export default function App() {
         }
       />
 
-      {/* FALLBACK */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+    <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>
   );
 }
