@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 // load User model from your backend src (adjust path if your project stores models elsewhere)
-const User = require('./src/models/User'); // <- ensure this path exists
+const User = require('./models/User'); // <- fixed path (file is already inside src/)
 
 async function main() {
   const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/agro_billing';

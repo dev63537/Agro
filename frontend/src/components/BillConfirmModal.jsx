@@ -23,54 +23,51 @@ export default function BillConfirmModal({
     const total = subTotal + gstTotal;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded shadow-lg w-full max-w-md p-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    Confirm Bill
-                </h2>
+        <div className="modal-backdrop" onClick={onCancel}>
+            <div className="modal-content max-w-md" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="text-lg font-semibold text-secondary-900 flex items-center gap-2">
+                        ✅ Confirm Bill
+                    </h2>
+                </div>
 
-                <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                        <span>Farmer</span>
-                        <span className="font-medium">{farmer?.name}</span>
-                    </div>
+                <div className="modal-body space-y-4">
+                    <div className="space-y-2.5 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-secondary-500">Farmer</span>
+                            <span className="font-medium text-secondary-800">{farmer?.name || '—'}</span>
+                        </div>
 
-                    <div className="flex justify-between">
-                        <span>Items</span>
-                        <span>{items.length}</span>
-                    </div>
+                        <div className="flex justify-between">
+                            <span className="text-secondary-500">Items</span>
+                            <span className="font-medium">{items.length}</span>
+                        </div>
 
-                    <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span>₹ {subTotal.toFixed(2)}</span>
-                    </div>
+                        <div className="flex justify-between">
+                            <span className="text-secondary-500">Subtotal</span>
+                            <span>₹ {subTotal.toFixed(2)}</span>
+                        </div>
 
-                    <div className="flex justify-between">
-                        <span>GST</span>
-                        <span>₹ {gstTotal.toFixed(2)}</span>
-                    </div>
+                        <div className="flex justify-between">
+                            <span className="text-secondary-500">GST</span>
+                            <span>₹ {gstTotal.toFixed(2)}</span>
+                        </div>
 
-                    <hr />
+                        <hr className="border-surface-200" />
 
-                    <div className="flex justify-between text-lg font-bold text-green-700">
-                        <span>Total</span>
-                        <span>₹ {total.toFixed(2)}</span>
+                        <div className="flex justify-between text-lg font-bold">
+                            <span className="text-secondary-800">Total</span>
+                            <span className="text-primary-700">₹ {total.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="mt-6 flex justify-end gap-3">
-                    <button
-                        className="px-4 py-2 rounded border"
-                        onClick={onCancel}
-                    >
+                <div className="modal-footer">
+                    <button className="btn-ghost" onClick={onCancel}>
                         Cancel
                     </button>
-
-                    <button
-                        className="px-4 py-2 rounded bg-green-600 text-white"
-                        onClick={onConfirm}
-                    >
-                        Confirm & Create Bill
+                    <button className="btn-primary" onClick={onConfirm}>
+                        ✅ Confirm & Create
                     </button>
                 </div>
             </div>

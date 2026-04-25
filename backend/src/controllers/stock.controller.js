@@ -4,7 +4,7 @@ const listStock = async (req, res) => {
   const { productId } = req.query;
   const q = { shopId: req.shopId };
   if (productId) q.productId = productId;
-  const batches = await StockBatch.find(q).sort({ expiryDate: 1, receivedAt: 1 });
+  const batches = await StockBatch.find(q).populate('productId', 'name unit price').sort({ expiryDate: 1, receivedAt: 1 });
   res.json({ batches });
 };
 

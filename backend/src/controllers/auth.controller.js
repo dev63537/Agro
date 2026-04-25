@@ -1,22 +1,66 @@
 const jwt = require("jsonwebtoken");
+const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const Shop = require("../models/Shop");
+const { generateToken, hashToken } = require("../utils/tokenGenerator");
 
-/**
- * LOGIN (Master + Shop Admin)
- */
+
+/* ================================
+   VALIDATION RULES
+================================ */
+const loginValidation = [
+  body("email").isEmail().withMessage("Valid email is required").normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
+const setPasswordValidation = [
+  body("token").notEmpty().withMessage("Token is required"),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
+];
+
+const resetPasswordValidation = [
+  body("token").notEmpty().withMessage("Token is required"),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
+];
+
+
+
+/* ================================
+   HELPER: handle validation errors
+================================ */
+const handleValidation = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array()[0].msg });
+  }
+  return null;
+};
+
+/* ================================
+   LOGIN (Master + Shop Admin)
+================================ */
 const login = async (req, res) => {
   try {
+    const valErr = handleValidation(req, res);
+    if (valErr) return;
+
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password" });
-    }
-
     // Find user
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    // Check if account is activated
+    if (!user.isActive) {
+      return res.status(403).json({
+        error: "Account not activated. Check your email for the setup link.",
+      });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -52,7 +96,7 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         shopId: user.shopId || null,
-        shop: shop || null, // 🔥 IMPORTANT
+        shop: shop || null,
       },
     });
   } catch (err) {
@@ -61,9 +105,9 @@ const login = async (req, res) => {
   }
 };
 
-/**
- * REGISTER MASTER ADMIN
- */
+/* ================================
+   REGISTER MASTER ADMIN
+================================ */
 const registerMaster = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -83,6 +127,7 @@ const registerMaster = async (req, res) => {
       password,
       role: "master",
       shopId: null,
+      isActive: true, // Master is active immediately
     });
 
     const token = jwt.sign(
@@ -107,7 +152,86 @@ const registerMaster = async (req, res) => {
   }
 };
 
+/* ================================
+   SET PASSWORD (First-time setup)
+================================ */
+const setPassword = async (req, res) => {
+  try {
+    const valErr = handleValidation(req, res);
+    if (valErr) return;
+
+    const { token, password } = req.body;
+
+    // Hash the token to compare with stored hash
+    const hashedToken = hashToken(token);
+
+    const user = await User.findOne({
+      inviteToken: hashedToken,
+      inviteTokenExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    // Set password, activate, clear token
+    user.password = password;
+    user.isActive = true;
+    user.inviteToken = null;
+    user.inviteTokenExpiry = null;
+    await user.save(); // pre-save hook will hash the password
+
+    console.log(`✅ Password set for: ${user.email}`);
+
+    res.json({ message: "Password set successfully. You can now log in." });
+  } catch (err) {
+    console.error("Set password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/* ================================
+   RESET PASSWORD
+================================ */
+const resetPassword = async (req, res) => {
+  try {
+    const valErr = handleValidation(req, res);
+    if (valErr) return;
+
+    const { token, password } = req.body;
+
+    const hashedToken = hashToken(token);
+
+    const user = await User.findOne({
+      resetToken: hashedToken,
+      resetTokenExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    // Update password, clear reset token
+    user.password = password;
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+    await user.save(); // pre-save hook will hash the password
+
+    console.log(`✅ Password reset for: ${user.email}`);
+
+    res.json({ message: "Password reset successfully. You can now log in." });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   login,
+  loginValidation,
   registerMaster,
+  setPassword,
+  setPasswordValidation,
+  resetPassword,
+  resetPasswordValidation,
 };

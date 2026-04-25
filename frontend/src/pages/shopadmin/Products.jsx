@@ -12,37 +12,65 @@ export default function Products() {
     }
   })
 
-  if (isLoading) return <div>Loading products...</div>
-  if (error) return <div>Error loading products</div>
+  if (isLoading) return (
+    <div className="space-y-4">
+      <div className="page-header"><div className="h-7 w-32 skeleton rounded" /></div>
+      <div className="table-container"><div className="h-64 skeleton" /></div>
+    </div>
+  )
+  if (error) return <div className="alert-error">Failed to load products</div>
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Products</h2>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Products</h1>
+          <p className="text-sm text-secondary-400 mt-1">{data.length} products in catalog</p>
+        </div>
         <Link to="/shop/products/new" className="btn-primary">
-          Add Product
+          ➕ Add Product
         </Link>
       </div>
 
       {data.length === 0 ? (
-        <div className="text-gray-500">No products found</div>
+        <div className="empty-state">
+          <div className="empty-state-icon">📦</div>
+          <div className="empty-state-title">No products yet</div>
+          <div className="empty-state-message">Add your first product to get started with billing.</div>
+          <Link to="/shop/products/new" className="btn-primary">Add Product</Link>
+        </div>
       ) : (
-        <div className="space-y-3">
-          {data.map(p => (
-            <div key={p._id} className="p-3 bg-white rounded shadow flex justify-between">
-              <div>
-                <div className="font-semibold">{p.name}</div>
-                <div className="text-sm text-gray-600">
-                  Price: ₹{p.price} / {p.unit}
-                </div>
-              </div>
-              <Link to={`/shop/products/${p._id}/edit`} className="text-blue-600">
-                Edit
-              </Link>
-
-
-            </div>
-          ))}
+        <div className="table-container">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Price</th>
+                <th>Unit</th>
+                <th>GST %</th>
+                <th>Category</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map(p => (
+                <tr key={p._id}>
+                  <td className="font-medium text-secondary-800">{p.name}</td>
+                  <td><span className="badge-neutral">{p.sku || '—'}</span></td>
+                  <td className="font-semibold text-primary-700">₹{p.price}</td>
+                  <td>{p.unit}</td>
+                  <td>{p.gstPercent || 0}%</td>
+                  <td>{p.category || '—'}</td>
+                  <td className="text-right">
+                    <Link to={`/shop/products/${p._id}/edit`} className="btn btn-sm btn-ghost text-info-600">
+                      ✏️ Edit
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

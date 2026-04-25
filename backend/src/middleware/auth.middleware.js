@@ -20,7 +20,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
-    req.shopId = user.shop || null;
+    req.shopId = user.shopId || null;
 
     next();
   } catch (err) {

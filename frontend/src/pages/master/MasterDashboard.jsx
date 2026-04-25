@@ -1,45 +1,49 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import StatCard from "../../components/StatCard";
 import SalesChart from "../../components/charts/SalesChart";
 import TopFarmersChart from "../../components/charts/TopFarmersChart";
 import { SkeletonCard, SkeletonChart } from "../../components/Skeleton";
 import EmptyState from "../../components/EmptyState";
-import { useMasterShopCount } from "../../hooks/reports/useMasterReports";
-
+import { useAuth } from "../../hooks/useAuth";
 
 import {
   useMasterSales,
   useMasterTopFarmers,
+  useMasterShopCount,
 } from "../../hooks/reports/useMasterReports";
 
+import { useQuery } from "@tanstack/react-query";
+import api from "../../lib/apiClient";
+
 export default function MasterDashboard() {
-  // 🔹 Queries
+  const { user } = useAuth();
   const { data: salesDataRaw, isLoading: salesLoading } = useMasterSales();
-  const { data: farmersRaw, isLoading: farmersLoading } =
-    useMasterTopFarmers();
+  const { data: farmersRaw, isLoading: farmersLoading } = useMasterTopFarmers();
+  const { data: totalShops = 0 } = useMasterShopCount();
+
+  // Fetch shops list for active/suspended count
+  const { data: shopsData } = useQuery({
+    queryKey: ["master-shops-list"],
+    queryFn: async () => {
+      const res = await api.get("/master/shops");
+      return res.data.shops || [];
+    },
+  });
+
+  const shops = Array.isArray(shopsData) ? shopsData : [];
+  const activeShops = shops.filter(s => s.status === "ACTIVE").length;
+  const suspendedShops = shops.filter(s => s.status === "SUSPENDED").length;
 
   const isLoading = salesLoading || farmersLoading;
 
-  // 🔹 FORCE SAFE ARRAYS
   const sales = Array.isArray(salesDataRaw) ? salesDataRaw : [];
   const farmers = Array.isArray(farmersRaw) ? farmersRaw : [];
-  const { data: totalShops = 0 } = useMasterShopCount();
 
-
-  // 🔹 Cards
-  const totalRevenue = sales.reduce(
-    (sum, s) => sum + (s.total || 0),
-    0
-  );
-
-  const totalBills = sales.reduce(
-    (sum, s) => sum + (s.count || 0),
-    0
-  );
-
+  const totalRevenue = sales.reduce((sum, s) => sum + (s.total || 0), 0);
+  const totalBills = sales.reduce((sum, s) => sum + (s.count || 0), 0);
   const totalFarmers = farmers.length;
 
-  // 🔹 Charts
   const salesChartData = sales.map((s) => ({
     date: `${s.month}/${s.year}`,
     total: s.total || 0,
@@ -52,50 +56,54 @@ export default function MasterDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* ===== TOP CARDS ===== */}
+      {/* Welcome */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Welcome, {user?.name || 'Admin'} 👋</h1>
+          <p className="text-sm text-secondary-400 mt-1">Here's your platform overview</p>
+        </div>
+        <Link to="/master/shops/create" className="btn-primary no-print">
+          ➕ Create Shop
+        </Link>
+      </div>
+
+      {/* Stat Cards */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
+          <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard title="Total Revenue" value={`₹ ${totalRevenue}`} />
-          <StatCard title="Total Shops" value={totalShops} />
-          <StatCard title="Total Farmers" value={totalFarmers} />
-          <StatCard title="Total Bills" value={totalBills} />  
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
+          <StatCard title="Total Revenue" value={`₹ ${totalRevenue.toLocaleString()}`} icon="💰" color="green" />
+          <StatCard title="Active Shops" value={activeShops} icon="🏪" color="blue" subtitle={suspendedShops > 0 ? `${suspendedShops} suspended` : 'All active'} trend={suspendedShops === 0 ? 'up' : 'down'} />
+          <StatCard title="Top Farmers" value={totalFarmers} icon="👨‍🌾" color="orange" />
+          <StatCard title="Total Bills" value={totalBills} icon="🧾" color="green" subtitle="All-time" />
         </div>
       )}
 
-      <h2 className="text-xl font-semibold">Master Dashboard</h2>
-
-      {/* ===== CHARTS ===== */}
+      {/* Charts */}
       {isLoading ? (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SkeletonChart />
           <SkeletonChart />
-        </>
+        </div>
       ) : (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {salesChartData.length === 0 ? (
-            <EmptyState
-              title="No sales yet"
-              message="Sales data will appear once shops create bills."
-            />
+            <EmptyState title="No sales yet" message="Sales data will appear once shops create bills." />
           ) : (
             <SalesChart data={salesChartData} />
           )}
 
           {farmerChartData.length === 0 ? (
-            <EmptyState
-              title="No farmers yet"
-              message="Top farmers will appear once sales are recorded."
-            />
+            <EmptyState title="No farmers yet" message="Top farmers will appear once sales are recorded." />
           ) : (
             <TopFarmersChart data={farmerChartData} />
           )}
-        </>
+        </div>
       )}
     </div>
   );

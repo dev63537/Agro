@@ -2,6 +2,9 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/auth/Login";
+import SetPassword from "./pages/auth/SetPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+
 import MasterDashboard from "./pages/master/MasterDashboard";
 import ShopManagement from "./pages/shops/ShopManagement";
 import ShopBlocked from "./components/ShopBlocked";
@@ -76,7 +79,12 @@ const ProtectedRoute = ({ children, role }) => {
 export default function App() {
   return (
     <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/set-password/:token" element={<SetPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+
 
       {/* MASTER */}
       <Route

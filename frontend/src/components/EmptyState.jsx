@@ -1,12 +1,16 @@
-import React from "react";
+import React from 'react'
 
-export default function EmptyState({ title, message }) {
+export default function EmptyState({ title, message, action, actionLabel, icon }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">
-        {title}
-      </h3>
-      <p>{message}</p>
+    <div className="empty-state">
+      {icon && <div className="empty-state-icon">{icon}</div>}
+      <div className="empty-state-title">{title}</div>
+      <div className="empty-state-message">{message}</div>
+      {action && actionLabel && (
+        <button onClick={action} className="btn-primary mt-2">
+          {actionLabel}
+        </button>
+      )}
     </div>
-  );
+  )
 }

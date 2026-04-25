@@ -2,19 +2,18 @@ const Bill = require("../models/Bill");
 const Product = require("../models/Product");
 const StockBatch = require("../models/StockBatch");
 const Farmer = require("../models/Farmer");
-const mongoose = require("mongoose");
+const { generateBillNo } = require("../utils/id.util");
+const planLimits = require("../config/planLimits");
 
 /**
- * FIFO stock consumption with session for rollback
+ * FIFO stock consumption (without transactions for standalone MongoDB)
  */
-async function consumeStock(session, shopId, productId, qtyNeeded) {
+async function consumeStock(shopId, productId, qtyNeeded) {
   const batches = await StockBatch.find({
     shopId,
     productId,
     qty: { $gt: 0 },
-  })
-    .sort({ receivedAt: 1 })
-    .session(session); // Add session for transaction
+  }).sort({ receivedAt: 1 });
 
   const available = batches.reduce((s, b) => s + b.qty, 0);
   if (available < qtyNeeded) {
@@ -30,8 +29,7 @@ async function consumeStock(session, shopId, productId, qtyNeeded) {
     const used = Math.min(batch.qty, remaining);
     batch.qty -= used;
     remaining -= used;
-    
-    // Add to updates array
+
     batchUpdates.push({
       updateOne: {
         filter: { _id: batch._id },
@@ -40,9 +38,8 @@ async function consumeStock(session, shopId, productId, qtyNeeded) {
     });
   }
 
-  // Bulk write with session for atomic update
   if (batchUpdates.length > 0) {
-    await StockBatch.bulkWrite(batchUpdates, { session });
+    await StockBatch.bulkWrite(batchUpdates);
   }
 
   return true;
@@ -55,18 +52,32 @@ exports.createBill = async ({
   paymentType,
   signatureBase64,
 }) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     if (!items || items.length === 0) {
       throw new Error("No items in bill");
     }
 
+    // ✅ ENFORCE PLAN LIMITS
+    const shopPlan = (shop.plan || "FREE").toUpperCase();
+    const limits = planLimits[shopPlan] || planLimits.FREE;
+    if (limits.monthlyBills !== Infinity) {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const billCount = await Bill.countDocuments({
+        shopId: shop._id,
+        createdAt: { $gte: startOfMonth },
+      });
+      if (billCount >= limits.monthlyBills) {
+        throw new Error(
+          `Monthly bill limit reached (${limits.monthlyBills} bills for ${shopPlan} plan). Please upgrade your plan.`
+        );
+      }
+    }
+
     const farmer = await Farmer.findOne({
       _id: farmerId,
       shopId: shop._id,
-    }).session(session);
+    });
 
     if (!farmer) {
       throw new Error("Farmer not found");
@@ -81,13 +92,12 @@ exports.createBill = async ({
       const product = await Product.findOne({
         _id: it.productId,
         shopId: shop._id,
-      }).session(session);
+      });
 
       if (!product) {
         throw new Error(`Product ${it.productId} not found`);
       }
 
-      // Check stock availability before consuming
       const totalStock = await StockBatch.aggregate([
         {
           $match: {
@@ -102,10 +112,10 @@ exports.createBill = async ({
             total: { $sum: "$qty" }
           }
         }
-      ]).session(session);
+      ]);
 
       const availableStock = totalStock[0]?.total || 0;
-      
+
       if (availableStock < it.qty) {
         throw new Error(`Insufficient stock for ${product.name}. Available: ${availableStock}, Requested: ${it.qty}`);
       }
@@ -116,9 +126,9 @@ exports.createBill = async ({
       const product = await Product.findOne({
         _id: it.productId,
         shopId: shop._id,
-      }).session(session);
+      });
 
-      await consumeStock(session, shop._id, product._id, it.qty);
+      await consumeStock(shop._id, product._id, it.qty);
 
       const amount = it.qty * product.price;
       const gst = (amount * product.gstPercent) / 100;
@@ -136,24 +146,22 @@ exports.createBill = async ({
       });
     }
 
-    // THIRD: Create the bill
-    const bill = await Bill.create([{
+    // THIRD: Generate bill number and create the bill
+    const billNo = await generateBillNo(shop._id);
+
+    const bill = await Bill.create({
       shopId: shop._id,
       farmerId,
+      billNo,
       items: billItems,
       subTotal,
       gstTotal,
       totalAmount: subTotal + gstTotal,
       paymentType,
-    }], { session });
+    });
 
-    await session.commitTransaction();
-    session.endSession();
-
-    return bill[0];
+    return bill;
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     throw error;
   }
 };

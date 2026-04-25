@@ -1,5 +1,6 @@
 const Bill = require("../models/Bill");
 const Payment = require("../models/Payment");
+const StockBatch = require("../models/StockBatch");
 const { createBill } = require("../services/billing.service");
 
 exports.createBillController = async (req, res) => {
@@ -95,7 +96,7 @@ exports.getBill = async (req, res) => {
     const bill = await Bill.findOne({
       _id: req.params.id,
       shopId: req.shop._id,
-    });
+    }).populate('farmerId', 'name village phone');
 
     if (!bill) {
       return res.status(404).json({ error: "Bill not found" });

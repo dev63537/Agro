@@ -38,11 +38,12 @@ api.interceptors.response.use(
 
     console.error("API Error:", message);
 
-    // Optional: simple alert for now (we’ll upgrade to toast later)
-    alert(message);
+    // ❌ Removed toast.error() here — individual components handle their own 
+    // error toasts via showError(). Having it here caused duplicate toasts.
 
     return Promise.reject(error);
   }
 );
 
 export default api;
+

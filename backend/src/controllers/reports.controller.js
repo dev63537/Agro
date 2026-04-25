@@ -32,8 +32,8 @@ exports.getTopFarmers = async (req, res) => {
       { $match: { shopId: req.shop._id } },
       {
         $group: {
-          _id: "$farmer",
-          total: { $sum: "$total" },
+          _id: "$farmerId",
+          total: { $sum: "$totalAmount" },
         },
       },
       { $sort: { total: -1 } },
@@ -112,7 +112,7 @@ exports.getLowStock = async (req, res) => {
 // 🔹 STOCK REPORT
 exports.stockReport = async (req, res) => {
   try {
-    const data = await StockBatch.find({ shop: req.shopId });
+    const data = await StockBatch.find({ shopId: req.shopId }).populate('productId', 'name unit price');
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -122,7 +122,7 @@ exports.stockReport = async (req, res) => {
 // 🔹 FARMER DUES REPORT
 exports.farmerDues = async (req, res) => {
   try {
-    const farmers = await Farmer.find({ shop: req.shopId });
+    const farmers = await Farmer.find({ shopId: req.shopId });
     res.json(farmers);
   } catch (err) {
     res.status(500).json({ error: err.message });

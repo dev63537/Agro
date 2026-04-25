@@ -1,1 +1,28 @@
 node_modules
+.env
+*.env.local
+*.env.production
+
+# Uploads (user-generated files)
+backend/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Large dump files
+project_summary.txt
+backend/src/backend_scr.txt
+frontend/src/frontend_src.txt
+
+# Credentials / test notes
+database/master.txt
+testing/

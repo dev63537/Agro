@@ -3,7 +3,7 @@ services:
     name: agro-billing-backend
     env: node
     plan: free
-    buildCommand: "npm ci && npm run build || echo skip"
+    buildCommand: "npm ci && npm run build && echo skip"
     startCommand: "npm start"
     envVars:
       - key: MONGODB_URI
