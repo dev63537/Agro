@@ -12,6 +12,8 @@ const {
   salesReport,
   stockReport,
   farmerDues,
+  farmerPurchaseReport,
+  productMovementReport,
 } = require("../controllers/reports.controller");
 
 
@@ -22,9 +24,11 @@ router.use(authMiddleware, tenantMiddleware, permit("shop_admin"));
 router.get("/farmers/top", getTopFarmers);
 router.get("/low-stock", getLowStock);
 
-// ✅ Other reports
+// ✅ Reports with date filtering
 router.get("/sales", salesReport);
 router.get("/stock", stockReport);
 router.get("/farmer-dues", farmerDues);
+router.get("/farmer-purchases", farmerPurchaseReport);
+router.get("/product-movement", productMovementReport);
 
 module.exports = router;

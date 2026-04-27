@@ -27,15 +27,21 @@ const getFarmer = async (req, res) => {
 
 // CREATE
 const createFarmer = async (req, res) => {
-  const { name, phone, village } = req.body;
+  const { name, phone, village, address } = req.body;
   if (!name) {
     return res.status(400).json({ error: 'name required' });
   }
+
+  // Auto-generate farmer code (F-001, F-002, etc.)
+  const farmerCount = await Farmer.countDocuments({ shopId: req.shop._id });
+  const farmerCode = `F-${String(farmerCount + 1).padStart(3, '0')}`;
 
   const farmer = await Farmer.create({
     name,
     phone,
     village,
+    address,
+    farmerCode,
     shopId: req.shop._id,
   });
 

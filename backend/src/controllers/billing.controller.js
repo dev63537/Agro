@@ -58,14 +58,16 @@ exports.createBillController = async (req, res) => {
 exports.checkStockAvailability = async (req, res) => {
   try {
     const { items } = req.body;
+    const mongoose = require('mongoose');
     const stockStatus = [];
 
     for (const item of items) {
+      const productObjId = new mongoose.Types.ObjectId(item.productId);
       const totalStock = await StockBatch.aggregate([
         {
           $match: {
             shopId: req.shop._id,
-            productId: item.productId,
+            productId: productObjId,
             qty: { $gt: 0 }
           }
         },

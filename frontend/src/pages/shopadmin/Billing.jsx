@@ -84,8 +84,13 @@ export default function Billing() {
     });
   };
 
+  const selectedFarmer = farmers.find(f => f._id === farmerId);
+
   const submit = () => {
     if (!farmerId) return showWarning("Please select a farmer");
+    if (selectedFarmer && !selectedFarmer.active) {
+      return showError("This farmer is inactive due to pending dues. Please clear their payments in the Ledger first.");
+    }
     if (items.length === 0) return showWarning("Please add at least one item");
     if (items.some(it => !it.productId)) return showWarning("Please select a product for all items");
 
@@ -151,6 +156,14 @@ export default function Billing() {
                   </option>
                 ))}
               </select>
+
+              {/* Inactive Farmer Warning */}
+              {selectedFarmer && !selectedFarmer.active && (
+                <div className="mt-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span><strong>{selectedFarmer.name}</strong> is inactive due to pending dues. Clear payments in the Ledger before creating a new bill.</span>
+                </div>
+              )}
             </div>
           </div>
 

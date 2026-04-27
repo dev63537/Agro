@@ -10,6 +10,9 @@ export default function InvoiceView() {
   const [loading, setLoading] = useState(true);
 
   const shopName = user?.shop?.name || "Shop";
+  const shopPhone = user?.shop?.phone || '';
+  const shopEmail = user?.shop?.email || '';
+  const shopAddress = user?.shop?.address || '';
 
   useEffect(() => {
     async function fetchBill() {
@@ -74,6 +77,9 @@ export default function InvoiceView() {
                 <div>
                   <h2 className="text-2xl font-bold text-secondary-900">{shopName}</h2>
                   <p className="text-sm text-secondary-400">Agro Billing System</p>
+                  {shopPhone && <p className="text-xs text-secondary-400 mt-1">📞 {shopPhone}</p>}
+                  {shopEmail && <p className="text-xs text-secondary-400">✉️ {shopEmail}</p>}
+                  {shopAddress && <p className="text-xs text-secondary-400">{shopAddress}</p>}
                 </div>
               </div>
             </div>
@@ -164,7 +170,18 @@ export default function InvoiceView() {
               <p className="text-xs text-secondary-400">Authorized Signature</p>
             </div>
             <div>
-              <div className="h-16 border-b-2 border-secondary-300 mb-2"></div>
+              {bill.signatureUrl ? (
+                <div className="mb-2">
+                  <img
+                    src={bill.signatureUrl}
+                    alt="Customer Signature"
+                    className="h-16 object-contain border-b-2 border-secondary-300 w-full"
+                    style={{ imageRendering: 'auto' }}
+                  />
+                </div>
+              ) : (
+                <div className="h-16 border-b-2 border-secondary-300 mb-2"></div>
+              )}
               <p className="text-xs text-secondary-400">Customer Signature</p>
             </div>
           </div>

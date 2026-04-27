@@ -11,6 +11,7 @@ export default function ProductForm() {
 
   const [form, setForm] = useState({
     name: "",
+    company: "",
     sku: "",
     unit: "kg",
     price: "",
@@ -28,6 +29,7 @@ export default function ProductForm() {
         const res = await api.get(`/products/${id}`);
         setForm({
           name: res.data.product.name || "",
+          company: res.data.product.company || "",
           sku: res.data.product.sku || "",
           unit: res.data.product.unit || "kg",
           price: res.data.product.price || "",
@@ -95,8 +97,19 @@ export default function ProductForm() {
                 {errors.name && <p className="field-error">{errors.name}</p>}
               </div>
               <div>
+                <label className="label">Company / Brand</label>
+                <input name="company" className="input" placeholder="e.g. Tata Rallis, Bayer" value={form.company} onChange={onChange} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
                 <label className="label">SKU</label>
                 <input name="sku" className="input" placeholder="e.g. UREA-50KG" value={form.sku} onChange={onChange} />
+              </div>
+              <div>
+                <label className="label">Category</label>
+                <input name="category" className="input" placeholder="e.g. Fertilizers, Seeds, Pesticides" value={form.category} onChange={onChange} />
               </div>
             </div>
 
@@ -124,10 +137,7 @@ export default function ProductForm() {
               </div>
             </div>
 
-            <div>
-              <label className="label">Category</label>
-              <input name="category" className="input" placeholder="e.g. Fertilizers, Seeds, Pesticides" value={form.category} onChange={onChange} />
-            </div>
+
 
             <div>
               <label className="label">Description</label>

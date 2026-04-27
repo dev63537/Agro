@@ -12,6 +12,7 @@ export default function FarmerForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [village, setVillage] = useState("");
+  const [address, setAddress] = useState("");
   const [active, setActive] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function FarmerForm() {
         setName(f.name);
         setPhone(f.phone || "");
         setVillage(f.village || "");
+        setAddress(f.address || "");
         setActive(f.active);
       } catch (err) {
         showError("Failed to load farmer");
@@ -43,7 +45,7 @@ export default function FarmerForm() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const payload = { name, phone, village, active };
+      const payload = { name, phone, village, address, active };
       if (id) {
         await api.patch(`/farmers/${id}`, payload);
         showSuccess("Farmer updated successfully");
@@ -104,6 +106,18 @@ export default function FarmerForm() {
                   onChange={(e) => setVillage(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="label">Address</label>
+              <textarea
+                className="input"
+                placeholder="Full address (optional)"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                rows={2}
+                style={{ minHeight: '60px', resize: 'vertical' }}
+              />
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-100 border border-surface-200">

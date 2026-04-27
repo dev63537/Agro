@@ -2,6 +2,7 @@ const Bill = require("../models/Bill");
 const Product = require("../models/Product");
 const StockBatch = require("../models/StockBatch");
 const Farmer = require("../models/Farmer");
+const YearlyLedger = require("../models/YearlyLedger");
 const { generateBillNo } = require("../utils/id.util");
 const planLimits = require("../config/planLimits");
 
@@ -45,6 +46,41 @@ async function consumeStock(shopId, productId, qtyNeeded) {
   return true;
 }
 
+/**
+ * Auto-update the farmer's YearlyLedger when a bill is created
+ */
+async function updateYearlyLedger(shopId, farmerId, billId, amount) {
+  const year = new Date().getFullYear();
+
+  // Find or create ledger for current year
+  let ledger = await YearlyLedger.findOne({ shopId, farmerId, year });
+
+  if (!ledger) {
+    ledger = await YearlyLedger.create({
+      shopId,
+      farmerId,
+      year,
+      totalDue: 0,
+      transactions: [],
+      status: "open",
+    });
+  }
+
+  // Add bill transaction and increase totalDue
+  ledger.transactions.push({
+    type: "bill",
+    billId,
+    amount,
+    date: new Date(),
+    note: `Bill created`,
+  });
+  ledger.totalDue += amount;
+  ledger.status = "open";
+
+  await ledger.save();
+  return ledger;
+}
+
 exports.createBill = async ({
   shop,
   farmerId,
@@ -81,6 +117,13 @@ exports.createBill = async ({
 
     if (!farmer) {
       throw new Error("Farmer not found");
+    }
+
+    // ✅ BLOCK INACTIVE FARMERS
+    if (!farmer.active) {
+      throw new Error(
+        "Farmer is inactive due to pending dues. Please clear outstanding payments before creating a new bill."
+      );
     }
 
     let subTotal = 0;
@@ -148,6 +191,7 @@ exports.createBill = async ({
 
     // THIRD: Generate bill number and create the bill
     const billNo = await generateBillNo(shop._id);
+    const totalAmount = subTotal + gstTotal;
 
     const bill = await Bill.create({
       shopId: shop._id,
@@ -156,9 +200,17 @@ exports.createBill = async ({
       items: billItems,
       subTotal,
       gstTotal,
-      totalAmount: subTotal + gstTotal,
+      totalAmount,
       paymentType,
+      signatureUrl: signatureBase64 || null, // ✅ SAVE SIGNATURE
     });
+
+    // ✅ AUTO-UPDATE YEARLY LEDGER
+    // For 'pending' payments, the full amount is due
+    // For 'cash'/'online' payments, nothing is due (paid immediately)
+    if (paymentType === "pending") {
+      await updateYearlyLedger(shop._id, farmerId, bill._id, totalAmount);
+    }
 
     return bill;
   } catch (error) {

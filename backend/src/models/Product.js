@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const ProductSchema = new Schema({
   shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true, index: true },
   name: { type: String, required: true, trim: true, index: true },
+  company: { type: String, trim: true },
   sku: { type: String, trim: true },
   unit: { type: String, default: 'kg' },
   price: { type: Number, required: true, min: 0 },

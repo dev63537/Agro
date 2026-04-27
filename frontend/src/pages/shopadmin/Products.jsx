@@ -45,6 +45,7 @@ export default function Products() {
             <thead>
               <tr>
                 <th>Product</th>
+                <th>Company</th>
                 <th>SKU</th>
                 <th>Price</th>
                 <th>Unit</th>
@@ -57,6 +58,7 @@ export default function Products() {
               {data.map(p => (
                 <tr key={p._id}>
                   <td className="font-medium text-secondary-800">{p.name}</td>
+                  <td className="text-secondary-500">{p.company || '—'}</td>
                   <td><span className="badge-neutral">{p.sku || '—'}</span></td>
                   <td className="font-semibold text-primary-700">₹{p.price}</td>
                   <td>{p.unit}</td>

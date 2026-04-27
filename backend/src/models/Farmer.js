@@ -3,9 +3,11 @@ const Schema = mongoose.Schema;
 
 const FarmerSchema = new Schema({
     shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true, index: true },
+    farmerCode: { type: String, trim: true, index: true },
     name: { type: String, required: true, trim: true, index: true },
     phone: { type: String },
     village: { type: String },
+    address: { type: String },
     meta: { type: Schema.Types.Mixed },
     active: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }

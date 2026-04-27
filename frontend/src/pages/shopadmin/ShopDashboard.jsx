@@ -76,7 +76,40 @@ export default function ShopDashboard() {
         </div>
       </div>
 
-      {/* Stat Cards */}
+      {/* Low Stock Alert Banner */}
+      {!isLoading && lowStock.length > 0 && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 animate-fade-in">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-800">
+              Low Stock Alert — {lowStock.length} product{lowStock.length > 1 ? 's' : ''} running low!
+            </p>
+            <p className="text-xs text-red-600 mt-0.5">
+              {lowStock.slice(0, 3).map(p => p.name).join(', ')}
+              {lowStock.length > 3 ? ` and ${lowStock.length - 3} more...` : ''}
+            </p>
+          </div>
+          <Link to="/shop/stock/new" className="btn btn-sm bg-red-100 text-red-700 hover:bg-red-200 border border-red-300 whitespace-nowrap">
+            + Add Stock
+          </Link>
+        </div>
+      )}
+
+      {/* Inactive Farmer Alert */}
+      {!isLoading && farmers.some && farmers.some(f => f.farmer && !f.farmer?.active) && (
+        <div className="p-4 rounded-xl bg-accent-50 border border-accent-200 flex items-center gap-3 animate-fade-in">
+          <span className="text-2xl">👨‍🌾</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-accent-800">
+              Some farmers have unpaid dues and are inactive
+            </p>
+            <p className="text-xs text-accent-600 mt-0.5">Check the Ledger to clear their pending payments.</p>
+          </div>
+          <Link to="/shop/ledger" className="btn btn-sm bg-accent-100 text-accent-700 hover:bg-accent-200 border border-accent-300 whitespace-nowrap">
+            View Ledger
+          </Link>
+        </div>
+      )}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
           <SkeletonCard />

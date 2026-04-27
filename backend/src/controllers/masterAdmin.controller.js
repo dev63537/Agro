@@ -66,7 +66,7 @@ const createShop = async (req, res) => {
 const updateShopStatus = async (req, res) => {
   try {
     const { shopId } = req.params;
-    const { status, plan, expiryDate } = req.body;
+    const { status, plan, expiryDate, name, ownerName, email, phone, address } = req.body;
 
     const shop = await Shop.findById(shopId);
     if (!shop) {
@@ -86,6 +86,13 @@ const updateShopStatus = async (req, res) => {
     if (expiryDate) {
       shop.expiryDate = new Date(expiryDate);
     }
+
+    // 🔹 Update editable fields
+    if (name !== undefined) shop.name = name;
+    if (ownerName !== undefined) shop.ownerName = ownerName;
+    if (email !== undefined) shop.email = email;
+    if (phone !== undefined) shop.phone = phone;
+    if (address !== undefined) shop.address = address;
 
     await shop.save();
 

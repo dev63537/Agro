@@ -1,15 +1,27 @@
 import React from 'react'
 import api from '../../lib/apiClient'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { showSuccess, showError } from '../../lib/toast'
 
 export default function Farmers() {
+  const queryClient = useQueryClient()
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['farmers'],
     queryFn: async () => {
       const res = await api.get('/farmers')
       return res.data.farmers
     }
+  })
+
+  const toggleActive = useMutation({
+    mutationFn: ({ id, active }) => api.patch(`/farmers/${id}`, { active }),
+    onSuccess: (_, { active }) => {
+      queryClient.invalidateQueries(['farmers'])
+      showSuccess(active ? 'Farmer activated' : 'Farmer deactivated')
+    },
+    onError: (err) => showError(err?.response?.data?.error || 'Failed to update farmer'),
   })
 
   if (isLoading) return (
@@ -44,6 +56,7 @@ export default function Farmers() {
           <table className="table">
             <thead>
               <tr>
+                <th>Code</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Village</th>
@@ -54,15 +67,23 @@ export default function Farmers() {
             <tbody>
               {data.map(f => (
                 <tr key={f._id}>
+                  <td className="text-xs font-mono text-secondary-400">{f.farmerCode || '—'}</td>
                   <td className="font-medium text-secondary-800">{f.name}</td>
                   <td>{f.phone || '—'}</td>
                   <td>{f.village || '—'}</td>
                   <td>
-                    {f.active ? (
-                      <span className="badge-success">Active</span>
-                    ) : (
-                      <span className="badge-danger">Inactive</span>
-                    )}
+                    <button
+                      onClick={() => toggleActive.mutate({ id: f._id, active: !f.active })}
+                      disabled={toggleActive.isPending}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+                        f.active
+                          ? 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${f.active ? 'bg-primary-500' : 'bg-red-500'}`} />
+                      {f.active ? 'Active' : 'Inactive'}
+                    </button>
                   </td>
                   <td className="text-right">
                     <Link to={`/shop/farmers/${f._id}/edit`} className="btn btn-sm btn-ghost text-info-600">

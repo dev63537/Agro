@@ -165,7 +165,8 @@
            placeholder:text-secondary-300
            focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400
            transition-all duration-200
-           resize-y min-h-[80px];
+           resize-y;
+    min-height: 80px;
   }
 
   /* ---- Tables ---- */

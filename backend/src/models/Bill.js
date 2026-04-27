@@ -18,7 +18,7 @@ const BillSchema = new Schema({
   subTotal: { type: Number, required: true },
   gstTotal: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
-  paymentType: { type: String, enum: ['cash', 'credit', 'upi', 'card'], default: 'cash' },
+  paymentType: { type: String, enum: ['cash', 'online', 'pending', 'credit', 'upi', 'card'], default: 'cash' },
   signatureUrl: { type: String },
   invoiceUrl: { type: String },
   createdAt: { type: Date, default: Date.now }

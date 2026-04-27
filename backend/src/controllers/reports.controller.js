@@ -2,11 +2,28 @@ const Bill = require("../models/Bill");
 const Product = require("../models/Product");
 const Farmer = require("../models/Farmer");
 const StockBatch = require("../models/StockBatch");
+const YearlyLedger = require("../models/YearlyLedger");
+const mongoose = require("mongoose");
 
-// 🔹 SALES REPORT
+// 🔹 SALES REPORT (with date filtering)
 exports.salesReport = async (req, res) => {
   try {
-    const bills = await Bill.find({ shopId: req.shopId })
+    const { from, to } = req.query;
+    const query = { shopId: req.shopId };
+
+    // Apply date range filter if provided
+    if (from || to) {
+      query.createdAt = {};
+      if (from) query.createdAt.$gte = new Date(from);
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = toDate;
+      }
+    }
+
+    const bills = await Bill.find(query)
+      .populate('farmerId', 'name village farmerCode')
       .sort({ createdAt: -1 });
 
     const total = bills.reduce(
@@ -43,7 +60,7 @@ exports.getTopFarmers = async (req, res) => {
     // fetch farmers separately
     const farmers = await Farmer.find({
       _id: { $in: agg.map((a) => a._id) },
-    }).select("name");
+    }).select("name farmerCode");
 
     const result = agg.map((a) => {
       const farmer = farmers.find(
@@ -63,36 +80,27 @@ exports.getTopFarmers = async (req, res) => {
   }
 };
 
-
-
-
-
 // 🔹 LOW STOCK REPORT
 exports.getLowStock = async (req, res) => {
   try {
     const data = await StockBatch.aggregate([
-      // ✅ FIX 1: correct shop field
       { $match: { shopId: req.shopId } },
-
-      // ✅ FIX 2: correct product field
       {
         $group: {
           _id: "$productId",
           qty: { $sum: "$qty" },
         },
       },
-
-      // ✅ threshold
       { $match: { qty: { $lte: 10 } } },
     ]);
 
-    // ✅ populate product safely
+    // populate product safely
     const populated = await Product.populate(data, {
       path: "_id",
       select: "name",
     });
 
-    // ✅ return only valid products
+    // return only valid products
     const result = populated
       .filter((p) => p._id)
       .map((p) => ({
@@ -107,8 +115,6 @@ exports.getLowStock = async (req, res) => {
   }
 };
 
-
-
 // 🔹 STOCK REPORT
 exports.stockReport = async (req, res) => {
   try {
@@ -119,12 +125,128 @@ exports.stockReport = async (req, res) => {
   }
 };
 
-// 🔹 FARMER DUES REPORT
+// 🔹 FARMER DUES REPORT (aggregated from YearlyLedger)
 exports.farmerDues = async (req, res) => {
   try {
-    const farmers = await Farmer.find({ shopId: req.shopId });
-    res.json(farmers);
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+
+    const ledgers = await YearlyLedger.find({
+      shopId: req.shopId,
+      year,
+      totalDue: { $gt: 0 },
+    })
+      .populate('farmerId', 'name phone village farmerCode active')
+      .sort({ totalDue: -1 });
+
+    const result = ledgers
+      .filter(l => l.farmerId) // exclude orphaned records
+      .map(l => ({
+        farmer: l.farmerId,
+        year: l.year,
+        totalDue: l.totalDue,
+        transactionCount: l.transactions.length,
+        status: l.status,
+      }));
+
+    const totalDues = result.reduce((sum, r) => sum + r.totalDue, 0);
+
+    res.json({
+      dues: result,
+      totalDues,
+      count: result.length,
+      year,
+    });
   } catch (err) {
+    console.error("Farmer dues error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🔹 FARMER-WISE PURCHASE REPORT
+exports.farmerPurchaseReport = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const matchStage = { shopId: req.shop._id };
+
+    if (from || to) {
+      matchStage.createdAt = {};
+      if (from) matchStage.createdAt.$gte = new Date(from);
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+        matchStage.createdAt.$lte = toDate;
+      }
+    }
+
+    const data = await Bill.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: "$farmerId",
+          totalAmount: { $sum: "$totalAmount" },
+          billCount: { $sum: 1 },
+          lastPurchase: { $max: "$createdAt" },
+        },
+      },
+      { $sort: { totalAmount: -1 } },
+    ]);
+
+    // Populate farmer names
+    const farmerIds = data.map(d => d._id);
+    const farmers = await Farmer.find({ _id: { $in: farmerIds } })
+      .select('name phone village farmerCode active');
+
+    const result = data.map(d => {
+      const farmer = farmers.find(f => f._id.toString() === d._id.toString());
+      return {
+        farmer: farmer || { name: 'Unknown' },
+        totalAmount: d.totalAmount,
+        billCount: d.billCount,
+        lastPurchase: d.lastPurchase,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("Farmer purchase report error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🔹 PRODUCT MOVEMENT REPORT
+exports.productMovementReport = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const matchStage = { shopId: req.shop._id };
+
+    if (from || to) {
+      matchStage.createdAt = {};
+      if (from) matchStage.createdAt.$gte = new Date(from);
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+        matchStage.createdAt.$lte = toDate;
+      }
+    }
+
+    const data = await Bill.aggregate([
+      { $match: matchStage },
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.productId",
+          productName: { $first: "$items.name" },
+          totalQtySold: { $sum: "$items.qty" },
+          totalRevenue: { $sum: "$items.total" },
+          billCount: { $sum: 1 },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+    ]);
+
+    res.json(data);
+  } catch (err) {
+    console.error("Product movement report error:", err);
     res.status(500).json({ error: err.message });
   }
 };
