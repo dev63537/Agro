@@ -133,7 +133,10 @@ export default function Billing() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Create Bill</h1>
-          <p className="text-sm text-secondary-400 mt-1">Generate a new invoice for a farmer</p>
+          <p className="text-sm text-secondary-400 mt-1">
+            Select farmer → Add items → Payment → Sign &nbsp;
+            <kbd className="px-1.5 py-0.5 text-xs bg-surface-200 rounded border border-surface-300 font-mono">Enter</kbd> on Qty adds new item row
+          </p>
         </div>
       </div>
 
@@ -148,11 +151,12 @@ export default function Billing() {
                 className="select"
                 value={farmerId}
                 onChange={(e) => setFarmerId(e.target.value)}
+                autoFocus
               >
-                <option value="">Choose a farmer...</option>
+                <option value="">👨‍🌾 Choose a farmer...</option>
                 {farmers.map((f) => (
                   <option key={f._id} value={f._id}>
-                    {f.name} {f.village ? `(${f.village})` : ''}
+                    {f.name} {f.village ? `(${f.village})` : ''} {!f.active ? '🔴 Inactive' : ''}
                   </option>
                 ))}
               </select>
@@ -223,8 +227,11 @@ export default function Billing() {
                             min="1"
                             className="input"
                             value={it.qty}
-                            onKeyDown={handleQtyKeyDown}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') { e.preventDefault(); addItem(); }
+                            }}
                             onChange={(e) => updateItem(idx, { qty: Number(e.target.value) })}
+                            placeholder="Qty"
                           />
                         </div>
                       </div>
@@ -257,9 +264,9 @@ export default function Billing() {
                     value={paymentType}
                     onChange={(e) => setPaymentType(e.target.value)}
                   >
-                    <option value="cash">💵 Cash</option>
-                    <option value="online">📱 Online</option>
-                    <option value="pending">⏳ Pending</option>
+                    <option value="cash">💵 Cash (Full)</option>
+                    <option value="online">📱 Online (Full)</option>
+                    <option value="pending">⏳ Pending / Due</option>
                   </select>
                 </div>
 
@@ -272,10 +279,18 @@ export default function Billing() {
                       placeholder="Enter paid amount"
                       value={paidAmount}
                       onChange={(e) => setPaidAmount(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); }
+                      }}
                     />
                     {Number(paidAmount) < grandTotal && Number(paidAmount) > 0 && (
                       <p className="text-xs text-accent-600 mt-1">
-                        Remaining: ₹{(grandTotal - Number(paidAmount)).toFixed(2)}
+                        ⚡ Remaining: ₹{(grandTotal - Number(paidAmount)).toFixed(2)}
+                      </p>
+                    )}
+                    {Number(paidAmount) > grandTotal && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✅ Change: ₹{(Number(paidAmount) - grandTotal).toFixed(2)}
                       </p>
                     )}
                   </div>
