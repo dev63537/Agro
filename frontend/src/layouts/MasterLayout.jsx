@@ -6,6 +6,7 @@ const navItems = [
   { to: '/master', label: 'Dashboard', icon: '📊' },
   { to: '/master/shops', label: 'Shops', icon: '🏪' },
   { to: '/master/shops/create', label: 'Create Shop', icon: '➕' },
+  { to: '/master/reset-data', label: 'Reset Data', icon: '🗑️' },
 ]
 
 export default function MasterLayout({ children }) {
@@ -14,7 +15,7 @@ export default function MasterLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen flex bg-surface-100">
+    <div className="h-screen flex overflow-hidden bg-surface-100">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -68,7 +69,7 @@ export default function MasterLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Header (mobile) */}
         <header className="md:hidden bg-white border-b border-surface-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
           <button

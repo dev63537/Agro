@@ -86,6 +86,7 @@ exports.createBill = async ({
   farmerId,
   items,
   paymentType,
+  paidAmount,
   signatureBase64,
 }) => {
   try {
@@ -206,10 +207,18 @@ exports.createBill = async ({
     });
 
     // ✅ AUTO-UPDATE YEARLY LEDGER
-    // For 'pending' payments, the full amount is due
-    // For 'cash'/'online' payments, nothing is due (paid immediately)
+    let pendingAmount = 0;
     if (paymentType === "pending") {
-      await updateYearlyLedger(shop._id, farmerId, bill._id, totalAmount);
+      pendingAmount = totalAmount;
+    } else {
+      const paid = paidAmount !== undefined && paidAmount !== null && paidAmount !== "" ? Number(paidAmount) : totalAmount;
+      if (paid < totalAmount) {
+        pendingAmount = totalAmount - paid;
+      }
+    }
+
+    if (pendingAmount > 0) {
+      await updateYearlyLedger(shop._id, farmerId, bill._id, pendingAmount);
     }
 
     return bill;

@@ -18,7 +18,7 @@ export default function CreateShop() {
 
     setLoading(true);
     try {
-      const res = await api.post("/master/shops", { name, code, ownerName, email, phone, plan });
+      const res = await api.post("/master/shops", { name, ownerName, email, phone, plan });
       setResult(res.data);
       showSuccess(res.data.message || "Shop created successfully!");
     } catch (err) {
@@ -40,10 +40,6 @@ export default function CreateShop() {
             <div>
               <label className="label">Shop Name *</label>
               <input className="input" placeholder="Enter shop name" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div>
-              <label className="label">Shop Code *</label>
-              <input className="input" placeholder="Unique code (e.g. GV01)" value={code} onChange={(e) => setCode(e.target.value)} required />
             </div>
             <div>
               <label className="label">Owner Name</label>

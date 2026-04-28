@@ -157,6 +157,17 @@ export default function Billing() {
                 ))}
               </select>
 
+              {/* Pending Dues Note */}
+              {selectedFarmer && selectedFarmer.pendingDues > 0 && (
+                <div className="mt-3 p-3 rounded-lg bg-orange-50 border border-orange-200 text-sm text-orange-800 flex items-start gap-2">
+                  <span className="text-lg">ℹ️</span>
+                  <div>
+                    <p><strong>Note:</strong> This farmer has a pending balance of <strong>₹{selectedFarmer.pendingDues.toLocaleString()}</strong>.</p>
+                    <p className="text-xs text-orange-600 mt-1">Check the Ledger to view details or clear their payments.</p>
+                  </div>
+                </div>
+              )}
+
               {/* Inactive Farmer Warning */}
               {selectedFarmer && !selectedFarmer.active && (
                 <div className="mt-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">

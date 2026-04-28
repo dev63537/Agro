@@ -30,6 +30,7 @@ exports.createBillController = async (req, res) => {
       farmerId,
       items,
       paymentType,
+      paidAmount,
       signatureBase64,
     });
 

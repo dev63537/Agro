@@ -4,9 +4,26 @@ const Farmer = require('../models/Farmer');
 const listFarmers = async (req, res) => {
   const farmers = await Farmer.find({
     shopId: req.shop._id,
-  }).sort({ createdAt: -1 });
+  }).lean().sort({ createdAt: -1 });
 
-  res.json({ farmers });
+  const YearlyLedger = require('../models/YearlyLedger');
+  const ledgers = await YearlyLedger.find({
+    shopId: req.shop._id,
+    totalDue: { $gt: 0 }
+  }).lean();
+
+  const farmerDuesMap = ledgers.reduce((acc, l) => {
+    const fId = l.farmerId.toString();
+    acc[fId] = (acc[fId] || 0) + l.totalDue;
+    return acc;
+  }, {});
+
+  const result = farmers.map(f => ({
+    ...f,
+    pendingDues: farmerDuesMap[f._id.toString()] || 0
+  }));
+
+  res.json({ farmers: result });
 };
 
 // GET SINGLE (FOR EDIT)
@@ -65,9 +82,29 @@ const updateFarmer = async (req, res) => {
   res.json({ farmer });
 };
 
+// SEND REMINDER
+const sendReminder = async (req, res) => {
+  const { id } = req.params;
+
+  const farmer = await Farmer.findOne({
+    _id: id,
+    shopId: req.shop._id,
+  });
+
+  if (!farmer) {
+    return res.status(404).json({ error: 'Farmer not found' });
+  }
+
+  // Integration point for SMS/WhatsApp
+  console.log(`[MOCK] Reminder sent to farmer ${farmer.name} (${farmer.phone})`);
+
+  res.json({ message: 'Reminder sent successfully' });
+};
+
 module.exports = {
   listFarmers,
   getFarmer,
   createFarmer,
   updateFarmer,
+  sendReminder,
 };

@@ -222,7 +222,7 @@
   /* ---- Sidebar ---- */
   .sidebar {
     @apply w-64 bg-white border-r border-surface-200 shadow-sidebar
-           flex flex-col min-h-screen
+           flex flex-col h-full
            transition-transform duration-300 ease-in-out;
   }
 

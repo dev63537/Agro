@@ -10,6 +10,7 @@ const {
     createFarmer,
     updateFarmer,
     getFarmer,
+    sendReminder,
 } = require('../controllers/farmer.controller');
 
 router.use(authMiddleware, tenantMiddleware, permit('shop_admin'));
@@ -18,5 +19,6 @@ router.get('/', listFarmers);
 router.post('/', createFarmer);
 router.get('/:id', getFarmer);
 router.patch('/:id', updateFarmer);
+router.post('/:id/remind', sendReminder);
 
 module.exports = router;

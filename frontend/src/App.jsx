@@ -10,6 +10,7 @@ import ShopManagement from "./pages/shops/ShopManagement";
 import ShopBlocked from "./components/ShopBlocked";
 import ShopDashboard from "./pages/shopadmin/ShopDashboard";
 import CreateShop from "./pages/master/CreateShop";
+import ResetTestData from "./pages/master/ResetTestData";
 import Products from "./pages/shopadmin/Products";
 import ProductForm from "./pages/shopadmin/ProductForm";
 import StockBatches from "./pages/shopadmin/StockBatches";
@@ -115,6 +116,17 @@ export default function App() {
           <ProtectedRoute role="master">
             <MasterLayout>
               <CreateShop />
+            </MasterLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/master/reset-data"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <ResetTestData />
             </MasterLayout>
           </ProtectedRoute>
         }

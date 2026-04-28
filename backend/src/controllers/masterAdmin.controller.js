@@ -1,5 +1,11 @@
 const User = require('../models/User');
 const Shop = require('../models/Shop');
+const Bill = require('../models/Bill');
+const Farmer = require('../models/Farmer');
+const Payment = require('../models/Payment');
+const Product = require('../models/Product');
+const StockBatch = require('../models/StockBatch');
+const YearlyLedger = require('../models/YearlyLedger');
 const { generateToken, hashToken } = require('../utils/tokenGenerator');
 const { sendInviteEmail, sendResetEmail } = require('../utils/emailSender');
 
@@ -192,4 +198,46 @@ const resendInvite = async (req, res) => {
   }
 };
 
-module.exports = { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite };
+const resetTestData = async (req, res) => {
+  try {
+    const { shopId, models } = req.body;
+    let filter = {};
+    if (shopId !== 'ALL') {
+      filter = { shopId };
+    }
+
+    const result = {};
+
+    if (models.includes('Bill')) {
+      const { deletedCount } = await Bill.deleteMany(filter);
+      result.Bill = deletedCount;
+    }
+    if (models.includes('Farmer')) {
+      const { deletedCount } = await Farmer.deleteMany(filter);
+      result.Farmer = deletedCount;
+    }
+    if (models.includes('Payment')) {
+      const { deletedCount } = await Payment.deleteMany(filter);
+      result.Payment = deletedCount;
+    }
+    if (models.includes('Product')) {
+      const { deletedCount } = await Product.deleteMany(filter);
+      result.Product = deletedCount;
+    }
+    if (models.includes('StockBatch')) {
+      const { deletedCount } = await StockBatch.deleteMany(filter);
+      result.StockBatch = deletedCount;
+    }
+    if (models.includes('YearlyLedger')) {
+      const { deletedCount } = await YearlyLedger.deleteMany(filter);
+      result.YearlyLedger = deletedCount;
+    }
+
+    res.json({ message: "Test data reset successful", result });
+  } catch (err) {
+    console.error("Reset test data error:", err);
+    res.status(500).json({ error: "Failed to reset test data" });
+  }
+};
+
+module.exports = { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite, resetTestData };

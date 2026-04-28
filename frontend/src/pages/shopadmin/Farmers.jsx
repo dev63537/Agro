@@ -24,6 +24,12 @@ export default function Farmers() {
     onError: (err) => showError(err?.response?.data?.error || 'Failed to update farmer'),
   })
 
+  const sendReminder = useMutation({
+    mutationFn: (id) => api.post(`/farmers/${id}/remind`),
+    onSuccess: () => showSuccess('Reminder sent successfully'),
+    onError: (err) => showError(err?.response?.data?.error || 'Failed to send reminder'),
+  })
+
   if (isLoading) return (
     <div className="space-y-4">
       <div className="page-header"><div className="h-7 w-32 skeleton rounded" /></div>
@@ -61,6 +67,7 @@ export default function Farmers() {
                 <th>Phone</th>
                 <th>Village</th>
                 <th>Status</th>
+                <th>Pending Dues</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -85,7 +92,19 @@ export default function Farmers() {
                       {f.active ? 'Active' : 'Inactive'}
                     </button>
                   </td>
-                  <td className="text-right">
+                  <td className="font-semibold text-red-600">
+                    {f.pendingDues > 0 ? `₹${f.pendingDues.toLocaleString()}` : '—'}
+                  </td>
+                  <td className="text-right flex items-center justify-end gap-2">
+                    {f.pendingDues > 0 && (
+                      <button 
+                        className="btn btn-sm bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200"
+                        onClick={() => sendReminder.mutate(f._id)}
+                        disabled={sendReminder.isPending}
+                      >
+                        🔔 Remind
+                      </button>
+                    )}
                     <Link to={`/shop/farmers/${f._id}/edit`} className="btn btn-sm btn-ghost text-info-600">
                       ✏️ Edit
                     </Link>
