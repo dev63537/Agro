@@ -340,6 +340,158 @@
   }
 }
 
+  /* =============================================
+     🔽 SEARCHABLE DROPDOWN COMPONENT
+  ============================================= */
+
+  /* Root wrapper — always relative so panel is anchored */
+  .sdd-root {
+    @apply relative w-full;
+  }
+
+  .sdd-disabled {
+    @apply opacity-60 pointer-events-none;
+  }
+
+  /* Trigger button — mimics the existing .select style */
+  .sdd-trigger {
+    @apply w-full flex items-center justify-between gap-2
+           px-4 py-2.5 rounded-lg
+           border border-surface-300 bg-white
+           text-secondary-800 text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400
+           transition-all duration-200 cursor-pointer
+           text-left;
+  }
+
+  .sdd-trigger--open {
+    @apply border-primary-400 ring-2 ring-primary-400;
+  }
+
+  .sdd-trigger--placeholder .sdd-trigger-label {
+    @apply text-secondary-300;
+  }
+
+  .sdd-trigger-label {
+    @apply flex-1 truncate;
+  }
+
+  .sdd-trigger-icons {
+    @apply flex items-center gap-1 shrink-0;
+  }
+
+  /* Clear × button inside trigger */
+  .sdd-clear {
+    @apply text-secondary-400 hover:text-red-500 text-xs leading-none
+           w-4 h-4 flex items-center justify-center rounded
+           hover:bg-red-50 transition-all duration-150 cursor-pointer;
+  }
+
+  /* Chevron icon */
+  .sdd-chevron {
+    @apply w-4 h-4 text-secondary-400 transition-transform duration-200;
+  }
+
+  .sdd-chevron--up {
+    @apply rotate-180;
+  }
+
+  /* Loading state */
+  .sdd-loading {
+    @apply flex items-center gap-2 text-secondary-400;
+  }
+
+  .sdd-spinner {
+    @apply w-4 h-4 animate-spin text-primary-500;
+  }
+
+  /* Error border */
+  .sdd-error .sdd-trigger {
+    @apply border-red-400 focus:ring-red-400 focus:border-red-400;
+  }
+
+  /* Dropdown panel */
+  .sdd-panel {
+    @apply absolute z-50 left-0 right-0 mt-1
+           bg-white rounded-xl border border-surface-200
+           shadow-card-hover overflow-hidden;
+    animation: sddSlideDown 0.18s ease-out both;
+  }
+
+  /* Search bar inside panel */
+  .sdd-search-wrap {
+    @apply relative flex items-center border-b border-surface-100 px-3 py-2;
+  }
+
+  .sdd-search-icon {
+    @apply w-4 h-4 text-secondary-400 shrink-0 mr-2;
+  }
+
+  .sdd-search-input {
+    @apply flex-1 text-sm text-secondary-800 bg-transparent
+           outline-none placeholder:text-secondary-300;
+  }
+
+  .sdd-search-clear {
+    @apply text-secondary-300 hover:text-secondary-600 text-xs cursor-pointer
+           w-4 h-4 flex items-center justify-center;
+  }
+
+  /* Options list */
+  .sdd-list {
+    @apply max-h-52 overflow-y-auto py-1;
+  }
+
+  /* Individual option row */
+  .sdd-option {
+    @apply flex items-center justify-between gap-2
+           px-4 py-2.5 text-sm text-secondary-700
+           cursor-pointer transition-colors duration-100;
+  }
+
+  .sdd-option--highlighted {
+    @apply bg-primary-50 text-primary-800;
+  }
+
+  .sdd-option--selected {
+    @apply bg-primary-100 text-primary-800 font-medium;
+  }
+
+  .sdd-option-label {
+    @apply flex-1;
+  }
+
+  /* Highlighted search text */
+  .sdd-highlight {
+    @apply bg-accent-200 text-accent-900 rounded px-0.5 not-italic font-semibold;
+  }
+
+  /* Checkmark icon */
+  .sdd-check {
+    @apply w-4 h-4 text-primary-600 shrink-0;
+  }
+
+  /* No results */
+  .sdd-empty {
+    @apply flex items-center gap-2 px-4 py-5
+           text-sm text-secondary-400 italic;
+  }
+
+  .sdd-empty-icon {
+    @apply text-base;
+  }
+
+  /* Keyboard hint footer */
+  .sdd-footer {
+    @apply border-t border-surface-100 px-4 py-1.5
+           text-xs text-secondary-300 select-none;
+  }
+
+  .sdd-footer kbd {
+    @apply px-1 py-0.5 rounded border border-surface-300
+           bg-surface-100 text-secondary-500 font-mono text-xs;
+  }
+
 /* =============================================
    🎬 ANIMATIONS
 ============================================= */
@@ -361,6 +513,11 @@
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes sddSlideDown {
+  from { opacity: 0; transform: translateY(-6px) scaleY(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scaleY(1); }
 }
 
 .animate-fade-in {

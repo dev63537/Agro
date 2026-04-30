@@ -1,18 +1,20 @@
-import React from 'react'
+import React from 'react';
+import SearchableDropdown from './SearchableDropdown';
 
+/**
+ * ProductSelector — Thin wrapper around SearchableDropdown for product lists.
+ * Renders: "Product Name — ₹price/unit"
+ */
 export default function ProductSelector({ products, value, onChange }) {
   return (
-    <select
-      className="select"
+    <SearchableDropdown
+      options={products}
       value={value}
-      onChange={e => onChange(e.target.value)}
-    >
-      <option value="">Select a product...</option>
-      {products.map(p => (
-        <option key={p._id} value={p._id}>
-          {p.name} — ₹{p.price}/{p.unit}
-        </option>
-      ))}
-    </select>
-  )
+      onChange={onChange}
+      placeholder="Select a product..."
+      valueKey="_id"
+      labelKey="name"
+      renderLabel={(p) => `${p.name} — ₹${p.price}/${p.unit}`}
+    />
+  );
 }

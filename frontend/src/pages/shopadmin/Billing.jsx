@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import api from "../../lib/apiClient";
 import ProductSelector from "../../components/ProductSelector";
+import SearchableDropdown from "../../components/SearchableDropdown";
 import SignaturePad from "../../components/SignaturePad";
 import BillSummary from "../../components/BillSummary";
 import { useNavigate } from "react-router-dom";
@@ -147,19 +148,18 @@ export default function Billing() {
           <div className="card">
             <div className="card-body">
               <h3 className="font-semibold text-secondary-800 mb-3">👨‍🌾 Select Farmer</h3>
-              <select
-                className="select"
+              <SearchableDropdown
+                options={farmers}
                 value={farmerId}
-                onChange={(e) => setFarmerId(e.target.value)}
+                onChange={setFarmerId}
+                placeholder="👨‍🌾 Choose a farmer..."
+                valueKey="_id"
+                labelKey="name"
+                renderLabel={(f) =>
+                  `${f.name}${f.village ? ` (${f.village})` : ''}${!f.active ? ' 🔴 Inactive' : ''}`
+                }
                 autoFocus
-              >
-                <option value="">👨‍🌾 Choose a farmer...</option>
-                {farmers.map((f) => (
-                  <option key={f._id} value={f._id}>
-                    {f.name} {f.village ? `(${f.village})` : ''} {!f.active ? '🔴 Inactive' : ''}
-                  </option>
-                ))}
-              </select>
+              />
 
               {/* Pending Dues Note */}
               {selectedFarmer && selectedFarmer.pendingDues > 0 && (
@@ -259,15 +259,18 @@ export default function Billing() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="label">Payment Type</label>
-                  <select
-                    className="select"
+                  <SearchableDropdown
+                    options={[
+                      { _id: 'cash',    name: '💵 Cash (Full)' },
+                      { _id: 'online',  name: '📱 Online (Full)' },
+                      { _id: 'pending', name: '⏳ Pending / Due' },
+                    ]}
                     value={paymentType}
-                    onChange={(e) => setPaymentType(e.target.value)}
-                  >
-                    <option value="cash">💵 Cash (Full)</option>
-                    <option value="online">📱 Online (Full)</option>
-                    <option value="pending">⏳ Pending / Due</option>
-                  </select>
+                    onChange={setPaymentType}
+                    placeholder="Select payment type"
+                    valueKey="_id"
+                    labelKey="name"
+                  />
                 </div>
 
                 {paymentType !== "pending" && (

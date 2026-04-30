@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import api from '../../lib/apiClient'
+import SearchableDropdown from '../../components/SearchableDropdown'
 import { showWarning, showError, showSuccess } from '../../lib/toast'
 
 export default function Ledger() {
@@ -82,15 +83,17 @@ export default function Ledger() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="label">Farmer</label>
-              <select className="select" value={farmerId} onChange={e => setFarmerId(e.target.value)}>
-                <option value="">Select a farmer</option>
-                {farmers.map(f => (
-                  <option key={f._id} value={f._id}>
-                    {f.farmerCode ? `[${f.farmerCode}] ` : ''}{f.name} {f.village ? `(${f.village})` : ''}
-                    {!f.active ? ' — ⚠️ Inactive' : ''}
-                  </option>
-                ))}
-              </select>
+              <SearchableDropdown
+                options={farmers}
+                value={farmerId}
+                onChange={setFarmerId}
+                placeholder="Select a farmer"
+                valueKey="_id"
+                labelKey="name"
+                renderLabel={(f) =>
+                  `${f.farmerCode ? `[${f.farmerCode}] ` : ''}${f.name}${f.village ? ` (${f.village})` : ''}${!f.active ? ' — ⚠️ Inactive' : ''}`
+                }
+              />
             </div>
             <div>
               <label className="label">Year</label>

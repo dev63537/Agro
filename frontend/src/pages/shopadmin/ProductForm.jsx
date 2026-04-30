@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../lib/apiClient";
+import SearchableDropdown from "../../components/SearchableDropdown";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { showSuccess, showError } from "../../lib/toast";
 
@@ -175,14 +176,21 @@ export default function ProductForm() {
               </div>
               <div>
                 <label className="label">Unit</label>
-                <select name="unit" className="select" value={form.unit} onChange={onChange}>
-                  <option value="kg">kg</option>
-                  <option value="ltr">ltr</option>
-                  <option value="pcs">pcs</option>
-                  <option value="bag">bag</option>
-                  <option value="box">box</option>
-                  <option value="ton">ton</option>
-                </select>
+                <SearchableDropdown
+                  options={[
+                    { _id: 'kg',  name: 'kg  — Kilogram' },
+                    { _id: 'ltr', name: 'ltr — Litre' },
+                    { _id: 'pcs', name: 'pcs — Pieces' },
+                    { _id: 'bag', name: 'bag — Bag' },
+                    { _id: 'box', name: 'box — Box' },
+                    { _id: 'ton', name: 'ton — Tonne' },
+                  ]}
+                  value={form.unit}
+                  onChange={(v) => setForm({ ...form, unit: v })}
+                  placeholder="Select unit"
+                  valueKey="_id"
+                  labelKey="name"
+                />
               </div>
               <div>
                 <label className="label">GST %</label>

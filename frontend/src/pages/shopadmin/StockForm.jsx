@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import api from '../../lib/apiClient'
+import SearchableDropdown from '../../components/SearchableDropdown'
 import { useNavigate, Link } from 'react-router-dom'
 import { showSuccess, showError } from '../../lib/toast'
 
@@ -76,22 +77,20 @@ export default function StockForm() {
         <div className="card-body">
           <form onSubmit={submit} className="space-y-5" onKeyDown={onEnterNext}>
 
-            {/* Product Select */}
+            {/* Product Searchable Dropdown */}
             <div>
               <label className="label label-required">Product</label>
-              <select
-                className={`select ${errors.productId ? 'input-error' : ''}`}
+              <SearchableDropdown
+                options={products}
                 value={productId}
+                onChange={(v) => { setProductId(v); setErrors({ ...errors, productId: null }); }}
+                placeholder="📦 Select a product..."
+                valueKey="_id"
+                labelKey="name"
+                renderLabel={(p) => `${p.name} (${p.unit})${p.company ? ` — ${p.company}` : ''}`}
+                error={!!errors.productId}
                 autoFocus
-                onChange={e => { setProductId(e.target.value); setErrors({ ...errors, productId: null }); }}
-              >
-                <option value="">📦 Select a product...</option>
-                {products.map(p => (
-                  <option value={p._id} key={p._id}>
-                    {p.name} ({p.unit}) {p.company ? `— ${p.company}` : ''}
-                  </option>
-                ))}
-              </select>
+              />
               {errors.productId && <p className="field-error">{errors.productId}</p>}
             </div>
 
