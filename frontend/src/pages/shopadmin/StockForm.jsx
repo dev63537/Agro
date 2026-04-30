@@ -104,7 +104,16 @@ export default function StockForm() {
                   className={`input ${errors.qty ? 'input-error' : ''}`}
                   placeholder="Enter quantity"
                   value={qty}
-                  onChange={e => { setQty(e.target.value); setErrors({ ...errors, qty: null }); }}
+                  onKeyDown={e => {
+                    // Block e, E, +, -, . — browsers allow these in type=number by default
+                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault()
+                  }}
+                  onChange={e => {
+                    // Extra safety: strip any non-digit characters before storing
+                    const digits = e.target.value.replace(/[^0-9]/g, '')
+                    setQty(digits)
+                    setErrors({ ...errors, qty: null })
+                  }}
                 />
                 {errors.qty && <p className="field-error">{errors.qty}</p>}
               </div>

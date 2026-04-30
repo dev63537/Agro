@@ -3,6 +3,7 @@ import api from '../../lib/apiClient'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { showSuccess, showError } from '../../lib/toast'
+import { SkeletonFarmersTable, SkeletonPageHeader } from '../../components/Skeleton'
 
 export default function Farmers() {
   const queryClient = useQueryClient()
@@ -66,9 +67,17 @@ export default function Farmers() {
   }, [data, search, filter])
 
   if (isLoading) return (
-    <div className="space-y-4">
-      <div className="page-header"><div className="h-7 w-32 skeleton rounded" /></div>
-      <div className="table-container"><div className="h-64 skeleton" /></div>
+    <div className="space-y-5 animate-fade-in">
+      <SkeletonPageHeader />
+      {/* Quick filter chips placeholder */}
+      <div className="flex gap-2">
+        {[60, 96, 80].map((w, i) => (
+          <div key={i} className={`skeleton h-7 rounded-full`} style={{ width: w }} />
+        ))}
+      </div>
+      {/* Search bar placeholder */}
+      <div className="skeleton h-10 rounded-lg max-w-sm" />
+      <SkeletonFarmersTable rows={6} />
     </div>
   )
   if (error) return <div className="alert-error">Failed to load farmers</div>

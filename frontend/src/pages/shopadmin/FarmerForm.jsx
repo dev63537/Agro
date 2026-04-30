@@ -109,8 +109,23 @@ export default function FarmerForm() {
                 <input
                   className={`input ${errors.phone ? "input-error" : ""}`}
                   placeholder="10-digit number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setErrors({ ...errors, phone: null }); }}
+                  onKeyDown={e => {
+                    // Allow: digits, Backspace, Delete, Tab, Arrow keys, Home, End
+                    const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End']
+                    if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+                      e.preventDefault()
+                    }
+                  }}
+                  onChange={e => {
+                    // Strip any non-digit characters and cap at 10 digits
+                    const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
+                    setPhone(digits)
+                    setErrors({ ...errors, phone: null })
+                  }}
                 />
                 {errors.phone && <p className="field-error">{errors.phone}</p>}
               </div>
