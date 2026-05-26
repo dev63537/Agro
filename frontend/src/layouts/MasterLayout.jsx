@@ -6,6 +6,7 @@ const navItems = [
   { to: '/master', label: 'Dashboard', icon: '📊' },
   { to: '/master/shops', label: 'Shops', icon: '🏪' },
   { to: '/master/shops/create', label: 'Create Shop', icon: '➕' },
+  { to: '/master/audit-log', label: 'Audit Log', icon: '📜' },
   { to: '/master/reset-data', label: 'Reset Data', icon: '🗑️' },
 ]
 

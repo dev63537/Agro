@@ -17,6 +17,7 @@ const billingRoutes = require("./routes/billing.routes");
 const ledgerRoutes = require("./routes/ledger.routes");
 const reportsRoutes = require("./routes/reports.routes");
 const masterReportsRoutes = require("./routes/masterReports.routes");
+const notificationsRoutes = require("./routes/notifications.routes"); // #9
 
 const { errorHandler } = require("./middleware/error.handler");
 
@@ -59,6 +60,7 @@ app.use("/api/billing", billingRoutes);
 app.use("/api/ledger", ledgerRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/master/reports", masterReportsRoutes);
+app.use("/api/notifications", notificationsRoutes); // #9
 
 /* ===============================
    HEALTH

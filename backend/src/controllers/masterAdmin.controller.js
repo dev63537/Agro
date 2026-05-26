@@ -6,8 +6,19 @@ const Payment = require('../models/Payment');
 const Product = require('../models/Product');
 const StockBatch = require('../models/StockBatch');
 const YearlyLedger = require('../models/YearlyLedger');
+const AuditLog = require('../models/AuditLog'); // #14
 const { generateToken, hashToken } = require('../utils/tokenGenerator');
 const { sendInviteEmail, sendResetEmail } = require('../utils/emailSender');
+
+// Helper — fire-and-forget audit log
+function audit(req, action, targetType, targetId, targetName, details = {}) {
+  AuditLog.create({
+    actorId:    req.user?._id,
+    actorEmail: req.user?.email,
+    action, targetType, targetId, targetName, details,
+    ip: req.ip || req.connection?.remoteAddress || '',
+  }).catch(e => console.error('[AuditLog]', e.message));
+}
 
 const listShops = async (req, res) => {
   const shops = await Shop.find().sort({ createdAt: -1 });
@@ -67,6 +78,7 @@ const createShop = async (req, res) => {
     message: `Invite email sent to ${email}. Shop admin must set their password to activate.`,
     shopAdmin: { email: adminUser.email, name: adminUser.name },
   });
+  audit(req, 'SHOP_CREATED', 'Shop', shop._id, shop.name, { plan: shop.plan, email });
 };
 
 const updateShopStatus = async (req, res) => {
@@ -101,11 +113,8 @@ const updateShopStatus = async (req, res) => {
     if (address !== undefined) shop.address = address;
 
     await shop.save();
-
-    res.json({
-      message: "Shop updated successfully",
-      shop,
-    });
+    audit(req, 'SHOP_UPDATED', 'Shop', shop._id, shop.name, { status, plan, expiryDate });
+    res.json({ message: "Shop updated successfully", shop });
   } catch (err) {
     console.error("Update shop error:", err);
     res.status(500).json({ error: "Failed to update shop" });
@@ -150,9 +159,8 @@ const resetShopAdminPassword = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send reset email' });
     }
 
-    res.json({
-      message: `Password reset email sent to ${shopAdmin.email}`,
-    });
+    res.json({ message: `Password reset email sent to ${shopAdmin.email}` });
+    audit(req, 'PASSWORD_RESET', 'User', shopAdmin._id, shopAdmin.email, { shopId });
   } catch (err) {
     console.error("Reset shop admin password error:", err);
     res.status(500).json({ error: "Failed to reset password" });
@@ -240,4 +248,19 @@ const resetTestData = async (req, res) => {
   }
 };
 
-module.exports = { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite, resetTestData };
+module.exports = { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite, resetTestData, getAuditLog };
+
+async function getAuditLog(req, res) {
+  try {
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const logs  = await AuditLog.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+    const total = await AuditLog.countDocuments();
+    res.json({ logs, total, page, limit });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

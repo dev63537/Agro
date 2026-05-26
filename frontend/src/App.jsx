@@ -27,6 +27,8 @@ import FarmerStatement from "./pages/shopadmin/FarmerStatement";
 import BillingHistory from "./pages/shopadmin/BillingHistory";
 import Ledger from "./pages/shopadmin/Ledger";
 import Reports from "./pages/shopadmin/Reports";
+import ShopSettings from "./pages/shopadmin/ShopSettings"; // #15
+import AuditLog from "./pages/master/AuditLog";            // #14
 
 import MasterLayout from "./layouts/MasterLayout";
 import ShopLayout from "./layouts/ShopLayout";
@@ -344,6 +346,29 @@ export default function App() {
             <ShopLayout>
               <Reports />
             </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/settings"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <ShopSettings />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Master — Audit Log #14 */}
+      <Route
+        path="/master/audit-log"
+        element={
+          <ProtectedRoute role="master">
+            <MasterLayout>
+              <AuditLog />
+            </MasterLayout>
           </ProtectedRoute>
         }
       />

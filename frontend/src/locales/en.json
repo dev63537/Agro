@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "stock": "Stock",
+    "farmers": "Farmers",
+    "billing": "Billing",
+    "history": "History",
+    "bulkPay": "Bulk Pay",
+    "ledger": "Ledger",
+    "returns": "Returns",
+    "statements": "Statements",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading...",
+    "noData": "No data found",
+    "actions": "Actions",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Address",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status",
+    "total": "Total"
+  },
+  "billing": {
+    "createBill": "Create Bill",
+    "billNo": "Bill No",
+    "farmer": "Farmer",
+    "items": "Items",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "partial": "Partial",
+    "balanceDue": "Balance Due",
+    "amountPaid": "Amount Paid",
+    "totalAmount": "Total Amount",
+    "paymentType": "Payment Type",
+    "history": "Billing History"
+  },
+  "farmers": {
+    "addFarmer": "Add Farmer",
+    "farmerName": "Farmer Name",
+    "village": "Village",
+    "creditLimit": "Credit Limit",
+    "pendingDues": "Pending Dues"
+  },
+  "settings": {
+    "title": "Shop Settings",
+    "businessInfo": "Business Information",
+    "invoiceSettings": "Invoice Settings",
+    "subscription": "Subscription",
+    "gstNumber": "GST Number",
+    "gstPercent": "GST Percent",
+    "invoicePrefix": "Invoice Prefix",
+    "invoiceFooter": "Invoice Footer",
+    "plan": "Plan",
+    "expiryDate": "Expiry Date"
+  }
+}

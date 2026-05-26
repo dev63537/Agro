@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import NotificationBell from '../components/NotificationBell' // #9
+import LanguageSwitcher from '../components/LanguageSwitcher' // #13
 
 const navItems = [
   { to: '/shop', label: 'Dashboard', icon: '📊' },
@@ -14,6 +16,7 @@ const navItems = [
   { to: '/shop/returns', label: 'Returns', icon: '🔄' },
   { to: '/shop/farmer-statement', label: 'Statements', icon: '📄' },
   { to: '/shop/reports', label: 'Reports', icon: '📈' },
+  { to: '/shop/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 export default function ShopLayout({ children }) {
@@ -70,6 +73,10 @@ export default function ShopLayout({ children }) {
               <p className="text-sm font-medium text-secondary-800 truncate">{user?.name}</p>
               <p className="text-xs text-secondary-400 truncate">{user?.email}</p>
             </div>
+            <NotificationBell />
+          </div>
+          <div className="flex items-center justify-between px-3 mb-2">
+            <LanguageSwitcher />
           </div>
           <button onClick={logout} className="btn-danger w-full btn-sm">
             Logout
@@ -93,6 +100,7 @@ export default function ShopLayout({ children }) {
             <span className="text-lg">🌾</span>
             <span className="font-semibold text-secondary-900">{shopName}</span>
           </div>
+          <div className="ml-auto"><NotificationBell /></div>
         </header>
 
         <main className="flex-1 p-4 md:p-8 overflow-auto">

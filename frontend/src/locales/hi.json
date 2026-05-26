@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "products": "उत्पाद",
+    "stock": "स्टॉक",
+    "farmers": "किसान",
+    "billing": "बिलिंग",
+    "history": "इतिहास",
+    "bulkPay": "बल्क भुगतान",
+    "ledger": "खाता-बही",
+    "returns": "वापसी",
+    "statements": "विवरण",
+    "reports": "रिपोर्ट",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट"
+  },
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "add": "जोड़ें",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है...",
+    "noData": "कोई डेटा नहीं मिला",
+    "actions": "क्रियाएं",
+    "name": "नाम",
+    "phone": "फोन",
+    "address": "पता",
+    "date": "तारीख",
+    "amount": "राशि",
+    "status": "स्थिति",
+    "total": "कुल"
+  },
+  "billing": {
+    "createBill": "बिल बनाएं",
+    "billNo": "बिल नं.",
+    "farmer": "किसान",
+    "items": "वस्तुएं",
+    "paid": "भुगतान किया",
+    "unpaid": "बकाया",
+    "partial": "आंशिक",
+    "balanceDue": "बकाया राशि",
+    "amountPaid": "भुगतान राशि",
+    "totalAmount": "कुल राशि",
+    "paymentType": "भुगतान प्रकार",
+    "history": "बिलिंग इतिहास"
+  },
+  "farmers": {
+    "addFarmer": "किसान जोड़ें",
+    "farmerName": "किसान का नाम",
+    "village": "गांव",
+    "creditLimit": "क्रेडिट सीमा",
+    "pendingDues": "बकाया"
+  },
+  "settings": {
+    "title": "दुकान सेटिंग्स",
+    "businessInfo": "व्यवसाय जानकारी",
+    "invoiceSettings": "चालान सेटिंग्स",
+    "subscription": "सदस्यता",
+    "gstNumber": "जीएसटी नंबर",
+    "gstPercent": "जीएसटी प्रतिशत",
+    "invoicePrefix": "चालान उपसर्ग",
+    "invoiceFooter": "चालान फुटर",
+    "plan": "योजना",
+    "expiryDate": "समाप्ति तिथि"
+  }
+}

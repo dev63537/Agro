@@ -5,6 +5,7 @@ const CreditNote = require("../models/CreditNote");
 const YearlyLedger = require("../models/YearlyLedger");
 const Product = require("../models/Product");
 const { createBill } = require("../services/billing.service");
+const { log } = require("../services/activity.service"); // #9 notifications
 const mongoose = require("mongoose");
 
 // ────────────────────────────────────────
@@ -33,6 +34,11 @@ exports.createBillController = async (req, res) => {
       method: paymentType === "partial" ? "cash" : paymentType,
       createdBy: req.user._id,
     });
+
+    // Log activity #9
+    const farmer = bill.farmerId?.name || '';
+    log.billCreated(req.shop._id, bill.billNo, farmer, bill._id);
+    if (paid > 0) log.paymentReceived(req.shop._id, paid, farmer, bill._id);
 
     res.status(201).json({ bill });
   } catch (err) {

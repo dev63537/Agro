@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
 import "./styles/globals.css";
+import "./lib/i18n"; // #13 Multi-language
 
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
@@ -13,6 +14,16 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const queryClient = new QueryClient();
+
+// #20 PWA — Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => console.log('[SW] Registered:', reg.scope))
+      .catch((err) => console.warn('[SW] Registration failed:', err));
+  });
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite, resetTestData } = require('../controllers/masterAdmin.controller');
+const { listShops, createShop, updateShopStatus, resetShopAdminPassword, resendInvite, resetTestData, getAuditLog } = require('../controllers/masterAdmin.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 const { permit } = require('../middleware/rbac.middleware');
 
@@ -12,5 +12,6 @@ router.patch('/shops/:shopId', updateShopStatus);
 router.post('/shops/:shopId/reset-password', resetShopAdminPassword);
 router.post('/shops/:shopId/resend-invite', resendInvite);
 router.post('/reset-test-data', resetTestData);
+router.get('/audit-log', getAuditLog); // #14
 
 module.exports = router;
