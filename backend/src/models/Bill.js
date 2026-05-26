@@ -18,9 +18,15 @@ const BillSchema = new Schema({
   subTotal: { type: Number, required: true },
   gstTotal: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
-  paymentType: { type: String, enum: ['cash', 'online', 'pending', 'credit', 'upi', 'card'], default: 'cash' },
+  amountPaid: { type: Number, default: 0 },
+  balanceDue: { type: Number, default: 0 },
+  paymentType: { type: String, enum: ['cash', 'online', 'pending', 'credit', 'upi', 'card', 'partial'], default: 'cash' },
+  paymentStatus: { type: String, enum: ['paid', 'partial', 'unpaid'], default: 'paid' },
   signatureUrl: { type: String },
   invoiceUrl: { type: String },
+  isEdited: { type: Boolean, default: false },
+  editHistory: { type: Array, default: [] },
+  creditNoteId: { type: Schema.Types.ObjectId, ref: 'CreditNote', default: null },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

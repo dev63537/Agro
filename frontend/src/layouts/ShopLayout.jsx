@@ -8,7 +8,11 @@ const navItems = [
   { to: '/shop/stock', label: 'Stock', icon: '🏷️' },
   { to: '/shop/farmers', label: 'Farmers', icon: '👨‍🌾' },
   { to: '/shop/billing', label: 'Billing', icon: '🧾' },
+  { to: '/shop/history', label: 'History', icon: '📋' },
+  { to: '/shop/bulk-pay', label: 'Bulk Pay', icon: '💳' },
   { to: '/shop/ledger', label: 'Ledger', icon: '📒' },
+  { to: '/shop/returns', label: 'Returns', icon: '🔄' },
+  { to: '/shop/farmer-statement', label: 'Statements', icon: '📄' },
   { to: '/shop/reports', label: 'Reports', icon: '📈' },
 ]
 

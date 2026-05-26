@@ -19,6 +19,12 @@ import Farmers from "./pages/shopadmin/Farmers";
 import FarmerForm from "./pages/shopadmin/FarmerForm";
 import Billing from "./pages/shopadmin/Billing";
 import InvoiceView from "./pages/shopadmin/InvoiceView";
+import BillPayments from "./pages/shopadmin/BillPayments";
+import IssueCreditNote from "./pages/shopadmin/IssueCreditNote";
+import BulkPayment from "./pages/shopadmin/BulkPayment";
+import Returns from "./pages/shopadmin/Returns";
+import FarmerStatement from "./pages/shopadmin/FarmerStatement";
+import BillingHistory from "./pages/shopadmin/BillingHistory";
 import Ledger from "./pages/shopadmin/Ledger";
 import Reports from "./pages/shopadmin/Reports";
 
@@ -249,6 +255,72 @@ export default function App() {
           <ProtectedRoute role="shop_admin">
             <ShopLayout>
               <InvoiceView />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/billing/:id/payments"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <BillPayments />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/billing/:id/credit-note"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <IssueCreditNote />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/returns"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <Returns />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/bulk-pay"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <BulkPayment />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/farmer-statement"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <FarmerStatement />
+            </ShopLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/shop/history"
+        element={
+          <ProtectedRoute role="shop_admin">
+            <ShopLayout>
+              <BillingHistory />
             </ShopLayout>
           </ProtectedRoute>
         }

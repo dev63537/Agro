@@ -10,6 +10,10 @@ const FarmerSchema = new Schema({
     address: { type: String },
     meta: { type: Schema.Types.Mixed },
     active: { type: Boolean, default: true },
+    creditLimit: { type: Number, default: 0, min: 0 }, // 0 = no limit
+    pendingDues: { type: Number, default: 0, min: 0 },  // denormalized total
+    isDeleted: { type: Boolean, default: false, index: true }, // #17 soft delete
+    deletedAt: { type: Date },
     createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

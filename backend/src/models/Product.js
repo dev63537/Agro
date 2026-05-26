@@ -11,6 +11,9 @@ const ProductSchema = new Schema({
   gstPercent: { type: Number, default: parseFloat(process.env.DEFAULT_GST_PERCENT || '0') },
   category: { type: String },
   description: { type: String },
+  lowStockThreshold: { type: Number, default: 0, min: 0 }, // 0 = no alert
+  isDeleted: { type: Boolean, default: false, index: true }, // #17 soft delete
+  deletedAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

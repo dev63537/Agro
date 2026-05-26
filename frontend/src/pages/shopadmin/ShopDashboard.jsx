@@ -11,6 +11,7 @@ import {
   useSalesReport,
   useTopFarmers,
   useLowStock,
+  useOutstandingDues,
 } from "../../hooks/reports/useReports";
 
 import { useAuth } from "../../hooks/useAuth";
@@ -20,8 +21,9 @@ export default function ShopDashboard() {
   const { data: salesRes, isLoading: salesLoading } = useSalesReport();
   const { data: farmersRes, isLoading: farmersLoading } = useTopFarmers();
   const { data: lowStockRes, isLoading: lowStockLoading } = useLowStock();
+  const { data: duesRes, isLoading: duesLoading } = useOutstandingDues();
 
-  const isLoading = salesLoading || farmersLoading || lowStockLoading;
+  const isLoading = salesLoading || farmersLoading || lowStockLoading || duesLoading;
 
   const salesDataObj = salesRes || { total: 0, count: 0, bills: [] };
   const salesBills = salesDataObj.bills;
@@ -122,7 +124,14 @@ export default function ShopDashboard() {
           <StatCard title="Today's Sales" value={`₹ ${todaySales.toLocaleString()}`} icon="💰" color="green" subtitle={`${todayBills.length} bills today`} trend={todayBills.length > 0 ? 'up' : null} />
           <StatCard title="Total Revenue" value={`₹ ${totalSales.toLocaleString()}`} icon="📈" color="blue" subtitle={`${totalBills} total bills`} />
           <StatCard title="Farmers" value={totalFarmers} icon="👨‍🌾" color="orange" />
-          <StatCard title="Pending Dues" value={`₹ ${pendingDues.toLocaleString()}`} icon="⏳" color="red" subtitle={`${pendingBills.length} unpaid bills`} trend={pendingBills.length > 0 ? 'down' : null} />
+          <StatCard
+            title="🚨 Outstanding Dues"
+            value={`₹ ${(duesRes?.totalOutstanding || 0).toLocaleString()}`}
+            icon="⚠️"
+            color="red"
+            subtitle={`${duesRes?.farmersWithDues || 0} farmer${(duesRes?.farmersWithDues || 0) !== 1 ? 's' : ''} with dues`}
+            trend={(duesRes?.totalOutstanding || 0) > 0 ? 'down' : null}
+          />
         </div>
       )}
 

@@ -60,4 +60,19 @@ export const useLowStock = () =>
       }
     },
     retry: 1,
-  }); 
+  });
+
+export const useOutstandingDues = () =>
+  useQuery({
+    queryKey: ["outstanding-dues"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/reports/outstanding-dues");
+        return res?.data || { totalOutstanding: 0, farmersWithDues: 0 };
+      } catch (error) {
+        console.error("Outstanding dues error:", error);
+        return { totalOutstanding: 0, farmersWithDues: 0 };
+      }
+    },
+    retry: 1,
+  });

@@ -49,11 +49,11 @@ const SetPassword = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="label">New Password</label>
-                <input type="password" placeholder="Minimum 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required minLength={6} />
+                <input type="password" autoComplete="new-password" placeholder="Minimum 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required minLength={6} autoFocus />
               </div>
               <div>
                 <label className="label">Confirm Password</label>
-                <input type="password" placeholder="Re-enter your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input" required minLength={6} />
+                <input type="password" autoComplete="new-password" placeholder="Re-enter your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input" required minLength={6} />
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full">
                 {loading ? "Setting Password..." : "Set Password & Activate"}

@@ -3,6 +3,7 @@ const Product = require("../models/Product");
 const Farmer = require("../models/Farmer");
 const StockBatch = require("../models/StockBatch");
 const YearlyLedger = require("../models/YearlyLedger");
+const Payment = require("../models/Payment");
 const mongoose = require("mongoose");
 
 // 🔹 SALES REPORT (with date filtering)
@@ -250,3 +251,57 @@ exports.productMovementReport = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 🔹 OUTSTANDING DUES SUMMARY (Dashboard widget)
+exports.outstandingDues = async (req, res) => {
+  try {
+    const year = new Date().getFullYear();
+    const ledgers = await YearlyLedger.find({
+      shopId: req.shopId || req.shop._id,
+      year,
+      totalDue: { $gt: 0 },
+    }).select('totalDue farmerId');
+
+    const totalOutstanding = ledgers.reduce((s, l) => s + l.totalDue, 0);
+    const farmersWithDues  = ledgers.length;
+
+    res.json({ totalOutstanding, farmersWithDues, year });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🔹 FARMER STATEMENT (all bills + payments for one farmer)
+exports.farmerStatement = async (req, res) => {
+  try {
+    const { farmerId } = req.params;
+    const shopId = req.shopId || req.shop._id;
+
+    const farmer = await Farmer.findOne({ _id: farmerId, shopId });
+    if (!farmer) return res.status(404).json({ error: 'Farmer not found' });
+
+    const bills = await Bill.find({ shopId, farmerId })
+      .sort({ createdAt: 1 });
+
+    const payments = await Payment.find({ shop: shopId, farmer: farmerId })
+      .sort({ createdAt: 1 });
+
+    const ledgers = await YearlyLedger.find({ shopId, farmerId })
+      .sort({ year: 1 });
+
+    const totalBilled   = bills.reduce((s, b) => s + b.totalAmount, 0);
+    const totalPaid     = payments.reduce((s, p) => s + p.amount, 0);
+    const totalDue      = ledgers.reduce((s, l) => s + l.totalDue, 0);
+
+    res.json({
+      farmer,
+      bills,
+      payments,
+      ledgers,
+      summary: { totalBilled, totalPaid, totalDue, billCount: bills.length },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+

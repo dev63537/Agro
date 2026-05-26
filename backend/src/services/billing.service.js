@@ -127,6 +127,19 @@ exports.createBill = async ({
       );
     }
 
+    // ✅ ENFORCE CREDIT LIMIT
+    if (farmer.creditLimit && farmer.creditLimit > 0) {
+      const YLedger = require('../models/YearlyLedger');
+      const year = new Date().getFullYear();
+      const ledger = await YLedger.findOne({ shopId: shop._id, farmerId, year });
+      const currentDue = ledger ? ledger.totalDue : 0;
+      if (currentDue >= farmer.creditLimit) {
+        throw new Error(
+          `Credit limit exceeded. ${farmer.name}'s credit limit is ₹${farmer.creditLimit.toLocaleString()} and current outstanding is ₹${currentDue.toLocaleString()}. Please clear dues first.`
+        );
+      }
+    }
+
     let subTotal = 0;
     let gstTotal = 0;
     const billItems = [];
@@ -194,6 +207,16 @@ exports.createBill = async ({
     const billNo = await generateBillNo(shop._id);
     const totalAmount = subTotal + gstTotal;
 
+    // Compute payment tracking fields
+    const paid =
+      paymentType === 'pending'
+        ? 0
+        : (paidAmount !== undefined && paidAmount !== null && paidAmount !== ''
+            ? Number(paidAmount)
+            : totalAmount);
+    const balance = Math.max(0, totalAmount - paid);
+    const paymentStatus = balance <= 0 ? 'paid' : paid > 0 ? 'partial' : 'unpaid';
+
     const bill = await Bill.create({
       shopId: shop._id,
       farmerId,
@@ -202,8 +225,11 @@ exports.createBill = async ({
       subTotal,
       gstTotal,
       totalAmount,
+      amountPaid: paid,
+      balanceDue: balance,
       paymentType,
-      signatureUrl: signatureBase64 || null, // ✅ SAVE SIGNATURE
+      paymentStatus,
+      signatureUrl: signatureBase64 || null,
     });
 
     // ✅ AUTO-UPDATE YEARLY LEDGER

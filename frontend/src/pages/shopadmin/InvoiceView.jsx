@@ -55,8 +55,21 @@ export default function InvoiceView() {
         <div>
           <h1 className="page-title">Invoice {bill.billNo}</h1>
           <p className="text-sm text-secondary-400 mt-1">Created on {new Date(bill.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          {bill.isEdited && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Edited</span>}
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          {/* Partial Payment button for unpaid/partial bills */}
+          {bill.paymentStatus !== 'paid' && (
+            <Link to={`/shop/billing/${id}/payments`} className="btn-outline border-green-400 text-green-700 hover:bg-green-50">
+              💳 Add Payment
+            </Link>
+          )}
+          {/* Return Items button — only if no credit note yet */}
+          {!bill.creditNoteId && (
+            <Link to={`/shop/billing/${id}/credit-note`} className="btn-outline border-orange-400 text-orange-700 hover:bg-orange-50">
+              🔄 Return Items
+            </Link>
+          )}
           <button onClick={() => window.print()} className="btn-primary">
             🖨️ Print Invoice
           </button>
@@ -160,6 +173,18 @@ export default function InvoiceView() {
                 <span className="text-secondary-800">Grand Total</span>
                 <span className="text-primary-700">₹ {totalAmount.toFixed(2)}</span>
               </div>
+              {bill.amountPaid > 0 && bill.amountPaid < bill.totalAmount && (
+                <>
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Amount Paid</span>
+                    <span className="font-semibold">₹ {bill.amountPaid?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-red-600 font-semibold">
+                    <span>Balance Due</span>
+                    <span>₹ {bill.balanceDue?.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

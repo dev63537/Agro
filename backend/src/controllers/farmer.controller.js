@@ -4,6 +4,7 @@ const Farmer = require('../models/Farmer');
 const listFarmers = async (req, res) => {
   const farmers = await Farmer.find({
     shopId: req.shop._id,
+    isDeleted: { $ne: true }, // #17 exclude soft-deleted
   }).lean().sort({ createdAt: -1 });
 
   const YearlyLedger = require('../models/YearlyLedger');
@@ -101,10 +102,32 @@ const sendReminder = async (req, res) => {
   res.json({ message: 'Reminder sent successfully' });
 };
 
+// SOFT DELETE (#17)
+const deleteFarmer = async (req, res) => {
+  const { id } = req.params;
+  const farmer = await Farmer.findOne({ _id: id, shopId: req.shop._id });
+  if (!farmer) return res.status(404).json({ error: 'Farmer not found' });
+
+  // Block if they have pending dues
+  if ((farmer.pendingDues || 0) > 0) {
+    return res.status(400).json({
+      error: `Cannot delete ${farmer.name} — they have pending dues of ₹${farmer.pendingDues.toLocaleString()}. Clear dues first.`
+    });
+  }
+
+  farmer.isDeleted = true;
+  farmer.deletedAt = new Date();
+  farmer.active    = false;
+  await farmer.save();
+
+  res.json({ message: `${farmer.name} has been removed. Their billing history is preserved.` });
+};
+
 module.exports = {
   listFarmers,
   getFarmer,
   createFarmer,
   updateFarmer,
   sendReminder,
+  deleteFarmer,
 };

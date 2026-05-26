@@ -11,6 +11,7 @@ const {
     updateFarmer,
     getFarmer,
     sendReminder,
+    deleteFarmer,
 } = require('../controllers/farmer.controller');
 
 router.use(authMiddleware, tenantMiddleware, permit('shop_admin'));
@@ -19,6 +20,7 @@ router.get('/', listFarmers);
 router.post('/', createFarmer);
 router.get('/:id', getFarmer);
 router.patch('/:id', updateFarmer);
+router.delete('/:id', deleteFarmer);       // #17 soft delete
 router.post('/:id/remind', sendReminder);
 
 module.exports = router;

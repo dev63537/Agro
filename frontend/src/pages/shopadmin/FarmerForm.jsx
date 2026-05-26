@@ -27,6 +27,7 @@ export default function FarmerForm() {
   const [village, setVillage] = useState("");
   const [address, setAddress] = useState("");
   const [active, setActive] = useState(true);
+  const [creditLimit, setCreditLimit] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -39,6 +40,7 @@ export default function FarmerForm() {
         setVillage(f.village || "");
         setAddress(f.address || "");
         setActive(f.active);
+        setCreditLimit(f.creditLimit || 0);
       } catch (err) {
         showError("Failed to load farmer");
       }
@@ -58,7 +60,7 @@ export default function FarmerForm() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const payload = { name, phone, village, address, active };
+      const payload = { name, phone, village, address, active, creditLimit: Number(creditLimit) };
       if (id) {
         await api.patch(`/farmers/${id}`, payload);
         showSuccess("Farmer updated successfully");
@@ -151,6 +153,22 @@ export default function FarmerForm() {
                 rows={2}
                 style={{ minHeight: "60px", resize: "vertical" }}
               />
+            </div>
+
+            {/* Credit Limit */}
+            <div>
+              <label className="label">Credit Limit (₹)</label>
+              <input
+                type="number"
+                min="0"
+                className="input"
+                placeholder="0 = No limit"
+                value={creditLimit}
+                onChange={(e) => setCreditLimit(e.target.value)}
+              />
+              <p className="text-xs text-secondary-400 mt-1">
+                🔒 Set to 0 for no limit. Billing will be blocked when outstanding dues reach this amount.
+              </p>
             </div>
 
             {/* Active Toggle */}

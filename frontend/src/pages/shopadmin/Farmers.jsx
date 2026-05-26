@@ -197,6 +197,7 @@ export default function Farmers() {
                 <th>Village</th>
                 <th>Status</th>
                 <th>Pending Dues</th>
+                <th>Credit Limit</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -228,6 +229,16 @@ export default function Farmers() {
                         <span className="badge-danger text-xs">Due</span>
                       </span>
                     ) : '—'}
+                  </td>
+                  <td className="text-xs text-secondary-500">
+                    {f.creditLimit > 0 ? (
+                      <span className="flex items-center gap-1">
+                        ₹{f.creditLimit.toLocaleString()}
+                        {f.pendingDues >= f.creditLimit && (
+                          <span className="badge-danger text-xs">Maxed</span>
+                        )}
+                      </span>
+                    ) : <span className="text-secondary-300">∞ No limit</span>}
                   </td>
                   <td className="text-right flex items-center justify-end gap-2">
                     {f.pendingDues > 0 && (

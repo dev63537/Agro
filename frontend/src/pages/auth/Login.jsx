@@ -51,12 +51,15 @@ const Login = () => {
             <div>
               <label className="label">Email Address</label>
               <input
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.trim())}
                 className="input"
                 required
+                autoFocus
               />
             </div>
 
@@ -64,6 +67,7 @@ const Login = () => {
               <label className="label">Password</label>
               <input
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
