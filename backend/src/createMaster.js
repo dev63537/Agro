@@ -1,6 +1,6 @@
 // backend/createMaster.js
-// Run from backend folder: node createMaster.js
-require('dotenv').config();
+// Run from project root: node .\backend\src\createMaster.js
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const path = require('path');
 
@@ -17,8 +17,8 @@ async function main() {
     // change these as you like
     const data = {
       name: 'Master Dev',
-      email: 'master@example.com',
-      password: '123456', // model should hash this on save (if your model has pre-save hashing)
+      email: 'malvidevendr117@gmail.com',
+      password: '27_01_2007',
       role: 'master',
       shopId: null
     };
