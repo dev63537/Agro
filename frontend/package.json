@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.12",
+    "@vercel/analytics": "^2.0.1",
     "apexcharts": "^5.3.6",
     "axios": "^1.6.0",
     "i18next": "^26.2.0",
