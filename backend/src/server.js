@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 4000;
   try {
     await connectDB();
     // Start background jobs
-    startExpiryChecker(); // #11 subscription expiry emails
+    startExpiryChecker(); 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });

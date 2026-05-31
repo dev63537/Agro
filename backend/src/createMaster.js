@@ -20,6 +20,7 @@ async function main() {
       email: 'malvidevendr117@gmail.com',
       password: '27_01_2007',
       role: 'master',
+      isActive: true,       // ← must be true so login works
       shopId: null
     };
 
