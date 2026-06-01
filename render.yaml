@@ -33,3 +33,5 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: BREVO_API_KEY
+        sync: false
