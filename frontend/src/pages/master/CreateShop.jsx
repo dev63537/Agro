@@ -19,6 +19,8 @@ function useEnterNext() {
 
 export default function CreateShop() {
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [userEditedCode, setUserEditedCode] = useState(false);
   const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -28,14 +30,33 @@ export default function CreateShop() {
 
   const onKeyDown = useEnterNext();
 
+  const handleNameChange = (val) => {
+    setName(val);
+    if (!userEditedCode) {
+      const autoCode = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      setCode(autoCode);
+    }
+  };
+
+  const handleCodeChange = (val) => {
+    setUserEditedCode(true);
+    const cleanCode = val.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setCode(cleanCode);
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!name.trim()) { showError("Shop name is required."); return; }
+    if (!code.trim()) { showError("Shop code is required."); return; }
     if (!email) { showError("Email is required — the shop admin will receive an invite."); return; }
 
     setLoading(true);
     try {
-      const res = await api.post("/master/shops", { name, ownerName, email, phone, plan });
+      const res = await api.post("/master/shops", { name, code, ownerName, email, phone, plan });
       setResult(res.data);
       showSuccess(res.data.message || "Shop created successfully!");
     } catch (err) {
@@ -46,7 +67,7 @@ export default function CreateShop() {
   };
 
   const reset = () => {
-    setName(""); setOwnerName(""); setEmail(""); setPhone(""); setPlan("free"); setResult(null);
+    setName(""); setCode(""); setUserEditedCode(false); setOwnerName(""); setEmail(""); setPhone(""); setPlan("free"); setResult(null);
   };
 
   return (
@@ -67,10 +88,22 @@ export default function CreateShop() {
                 className="input"
                 placeholder="Enter shop name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 autoFocus
                 required
               />
+            </div>
+
+            <div>
+              <label className="label label-required">Shop Code</label>
+              <input
+                className="input"
+                placeholder="Enter unique shop code (e.g. agro-pune)"
+                value={code}
+                onChange={(e) => handleCodeChange(e.target.value)}
+                required
+              />
+              <p className="text-xs text-secondary-400 mt-1">🏷️ This is the unique identifier for URL/logins (lowercase, alphanumeric, hyphens).</p>
             </div>
 
             <div>
