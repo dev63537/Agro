@@ -23,15 +23,21 @@ const FRONTEND_URL = () => process.env.FRONTEND_URL || 'http://localhost:5173';
  * and falls back to Nodemailer SMTP.
  */
 const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
-  const brevoApiKey = process.env.BREVO_API_KEY;
+  const brevoApiKey = process.env.BREVO_API_KEY || process.env.BREVO_KEY;
 
-  if (brevoApiKey) {
+  console.log(`📧 sendEmail wrapper invoked for recipient: ${toEmail}`);
+  console.log(`[Diagnostics] BREVO_API_KEY present: ${process.env.BREVO_API_KEY ? 'YES (length: ' + process.env.BREVO_API_KEY.trim().length + ')' : 'NO'}`);
+  console.log(`[Diagnostics] BREVO_KEY present: ${process.env.BREVO_KEY ? 'YES (length: ' + process.env.BREVO_KEY.trim().length + ')' : 'NO'}`);
+  console.log(`[Diagnostics] SMTP_USER present: ${process.env.SMTP_USER ? 'YES' : 'NO'}`);
+
+  if (brevoApiKey && brevoApiKey.trim()) {
+    const activeKey = brevoApiKey.trim();
     console.log(`📧 Attempting email delivery to ${toEmail} via Brevo HTTP API...`);
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
-          'api-key': brevoApiKey,
+          'api-key': activeKey,
           'content-type': 'application/json',
           'accept': 'application/json',
         },
@@ -62,6 +68,8 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
     } catch (brevoErr) {
       console.error('📧 Brevo API delivery failed. Attempting SMTP fallback...', brevoErr);
     }
+  } else {
+    console.log(`⚠️ Brevo API Key not found in environment variables. Falling back to SMTP.`);
   }
 
   // Fallback / Local development: SMTP via Nodemailer

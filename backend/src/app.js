@@ -22,6 +22,7 @@ const notificationsRoutes = require("./routes/notifications.routes"); // #9
 const { errorHandler } = require("./middleware/error.handler");
 
 const app = express();
+app.set("trust proxy", 1);
 
 /* ===============================
    MIDDLEWARE
