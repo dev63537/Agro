@@ -356,12 +356,12 @@
   /* Trigger button — mimics the existing .select style */
   .sdd-trigger {
     @apply w-full flex items-center justify-between gap-2
-           px-4 py-2.5 rounded-lg
+           px-4 py-3 md:py-2.5 rounded-lg
            border border-surface-300 bg-white
-           text-secondary-800 text-sm
+           text-secondary-800 text-base md:text-sm
            focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400
            transition-all duration-200 cursor-pointer
-           text-left;
+           text-left min-h-[44px];
   }
 
   .sdd-trigger--open {
@@ -445,8 +445,8 @@
   /* Individual option row */
   .sdd-option {
     @apply flex items-center justify-between gap-2
-           px-4 py-2.5 text-sm text-secondary-700
-           cursor-pointer transition-colors duration-100;
+           px-4 py-3 md:py-2.5 text-base md:text-sm text-secondary-700
+           cursor-pointer transition-colors duration-100 min-h-[44px];
   }
 
   .sdd-option--highlighted {
@@ -577,7 +577,7 @@
 }
 
 /* =============================================
-   📱 RESPONSIVE UTILITIES
+   📱 RESPONSIVE UTILITIES & FLUID TYPOGRAPHY
 ============================================= */
 @media (max-width: 768px) {
   .sidebar {
@@ -595,4 +595,33 @@
   .table-container {
     @apply -mx-4 rounded-none border-x-0;
   }
+}
+
+/* Fluid Typography Utilities using clamp() */
+.text-fluid-lg {
+  font-size: clamp(1.125rem, 1.5vw + 0.875rem, 1.5rem);
+  line-height: 1.25;
+}
+
+.text-fluid-xl {
+  font-size: clamp(1.25rem, 2vw + 1rem, 1.875rem);
+  line-height: 1.2;
+}
+
+.text-fluid-2xl {
+  font-size: clamp(1.5rem, 2.5vw + 1rem, 2.25rem);
+  line-height: 1.15;
+}
+
+/* Screen Reader Only Utility for Screen Reader Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

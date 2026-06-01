@@ -196,9 +196,8 @@ export default function BulkPayment() {
           </div>
         </div>
       ) : (
-        <div className="card">
-          <div className="card-body p-0">
-            <table className="table">
+        <div className="table-container">
+          <table className="table">
               <thead>
                 <tr>
                   <th className="w-10">
@@ -274,8 +273,7 @@ export default function BulkPayment() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

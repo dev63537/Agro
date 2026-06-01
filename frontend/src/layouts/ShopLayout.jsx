@@ -29,15 +29,20 @@ export default function ShopLayout({ children }) {
   return (
     <div className="h-screen flex overflow-hidden bg-surface-100">
       {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <div
+        className={`sidebar-overlay md:hidden ${
+          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
 
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} md:translate-x-0`}>
+      <aside 
+        className={`sidebar ${sidebarOpen ? 'open' : ''} md:translate-x-0`}
+        aria-label="Shop Administration Navigation"
+        role="navigation"
+      >
         <div className="sidebar-brand">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-lg font-bold shadow-md">
@@ -58,7 +63,7 @@ export default function ShopLayout({ children }) {
               onClick={() => setSidebarOpen(false)}
               className={`sidebar-link ${location.pathname === item.to ? 'active' : ''}`}
             >
-              <span className="text-lg">{item.icon}</span>
+              <span className="text-lg" aria-hidden="true">{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           ))}
@@ -78,7 +83,7 @@ export default function ShopLayout({ children }) {
           <div className="flex items-center justify-between px-3 mb-2">
             <LanguageSwitcher />
           </div>
-          <button onClick={logout} className="btn-danger w-full btn-sm">
+          <button onClick={logout} className="btn-danger w-full btn-sm min-h-[40px]">
             Logout
           </button>
         </div>
@@ -90,14 +95,16 @@ export default function ShopLayout({ children }) {
         <header className="md:hidden bg-white border-b border-surface-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-surface-100 transition-colors"
+            aria-label="Open sidebar menu"
+            aria-expanded={sidebarOpen}
+            className="p-3 -m-2 rounded-lg hover:bg-surface-100 transition-colors flex items-center justify-center min-w-[44px] min-h-[44px]"
           >
             <svg className="w-6 h-6 text-secondary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-lg">🌾</span>
+            <span className="text-lg" aria-hidden="true">🌾</span>
             <span className="font-semibold text-secondary-900">{shopName}</span>
           </div>
           <div className="ml-auto"><NotificationBell /></div>

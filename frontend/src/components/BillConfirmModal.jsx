@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 export default function BillConfirmModal({
     open,
@@ -7,6 +7,27 @@ export default function BillConfirmModal({
     onCancel,
     onConfirm,
 }) {
+    const confirmButtonRef = useRef(null);
+
+    // Escape key listener to close modal
+    useEffect(() => {
+        if (!open) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                onCancel();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        // Focus the confirm button or first interactive element when opened
+        confirmButtonRef.current?.focus();
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [open, onCancel]);
+
     if (!open) return null;
 
     const subTotal = items.reduce(
@@ -23,10 +44,20 @@ export default function BillConfirmModal({
     const total = subTotal + gstTotal;
 
     return (
-        <div className="modal-backdrop" onClick={onCancel}>
-            <div className="modal-content max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div 
+            className="modal-backdrop" 
+            onClick={onCancel}
+            role="presentation"
+        >
+            <div 
+                className="modal-content max-w-md" 
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="confirm-bill-title"
+            >
                 <div className="modal-header">
-                    <h2 className="text-lg font-semibold text-secondary-900 flex items-center gap-2">
+                    <h2 id="confirm-bill-title" className="text-lg font-semibold text-secondary-900 flex items-center gap-2">
                         ✅ Confirm Bill
                     </h2>
                 </div>
@@ -63,10 +94,14 @@ export default function BillConfirmModal({
                 </div>
 
                 <div className="modal-footer">
-                    <button className="btn-ghost" onClick={onCancel}>
+                    <button className="btn-ghost min-h-[40px] px-4 animate-active" onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className="btn-primary" onClick={onConfirm}>
+                    <button 
+                        ref={confirmButtonRef}
+                        className="btn-primary min-h-[40px] px-4" 
+                        onClick={onConfirm}
+                    >
                         ✅ Confirm & Create
                     </button>
                 </div>

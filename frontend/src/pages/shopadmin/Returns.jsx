@@ -20,22 +20,38 @@ const StatusBadge = ({ status }) => {
 
 /* ─── Detail drawer / modal ─── */
 function CreditNoteDetail({ cn, onClose }) {
+  const closeBtnRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!cn) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    closeBtnRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [cn, onClose]);
+
   if (!cn) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
+      role="presentation"
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cn-modal-title"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-5 flex items-start justify-between">
           <div>
             <p className="text-white/70 text-xs uppercase tracking-widest font-medium">Credit Note</p>
-            <h2 className="text-2xl font-bold text-white mt-0.5">{cn.creditNoteNo}</h2>
+            <h2 id="cn-modal-title" className="text-2xl font-bold text-white mt-0.5">{cn.creditNoteNo}</h2>
             <p className="text-white/80 text-sm mt-1">
               Farmer: <strong>{cn.farmerId?.name}</strong>
               {cn.farmerId?.village && ` · ${cn.farmerId.village}`}
@@ -43,7 +59,8 @@ function CreditNoteDetail({ cn, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="text-white/70 hover:text-white transition-colors text-2xl leading-none mt-1"
+            aria-label="Close modal"
+            className="text-white/70 hover:text-white transition-colors text-2xl leading-none mt-1 p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             ×
           </button>
@@ -135,7 +152,7 @@ function CreditNoteDetail({ cn, onClose }) {
 
         {/* Footer */}
         <div className="px-6 pb-6">
-          <button onClick={onClose} className="btn-ghost w-full">Close</button>
+          <button ref={closeBtnRef} onClick={onClose} className="btn-ghost w-full min-h-[44px]">Close</button>
         </div>
       </div>
     </div>

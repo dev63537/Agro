@@ -184,7 +184,7 @@ export default function NotificationBell() {
 
       {/* ── Dropdown Panel ───────────────────────────────────────────────── */}
       <div
-        className={`absolute right-0 mt-2 w-80 sm:w-96 card shadow-xl z-50 overflow-hidden
+        className={`fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-96 card shadow-xl z-50 overflow-hidden
           transition-all duration-200 ease-out origin-top-right
           ${open ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}
         role="dialog"
