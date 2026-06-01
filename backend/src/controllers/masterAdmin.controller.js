@@ -34,18 +34,39 @@ const listShops = async (req, res) => {
  */
 const createShop = async (req, res) => {
   const { name, code, ownerName, email, phone, plan = 'free' } = req.body;
-  if (!name || !code) return res.status(400).json({ error: 'name and code required' });
+  if (!name) return res.status(400).json({ error: 'name is required' });
   if (!email) return res.status(400).json({ error: 'email is required for shop admin invite' });
 
-  const existing = await Shop.findOne({ code });
-  if (existing) return res.status(400).json({ error: 'Shop code already exists' });
+  // Auto-generate code if not provided
+  let finalCode = code;
+  if (!finalCode) {
+    let baseCode = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    
+    if (!baseCode) baseCode = "shop";
+
+    finalCode = baseCode;
+    let counter = 1;
+    while (true) {
+      const existing = await Shop.findOne({ code: finalCode });
+      if (!existing) break;
+      finalCode = `${baseCode}-${counter}`;
+      counter++;
+    }
+  } else {
+    const existing = await Shop.findOne({ code: finalCode });
+    if (existing) return res.status(400).json({ error: 'Shop code already exists' });
+  }
 
   // Check if email is already in use
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) return res.status(400).json({ error: 'Email already in use' });
 
   const shop = await Shop.create({
-    name, code, ownerName, email, phone, plan: plan.toUpperCase(), status: 'ACTIVE'
+    name, code: finalCode, ownerName, email, phone, plan: plan.toUpperCase(), status: 'ACTIVE'
   });
 
   // Generate secure invite token
