@@ -29,6 +29,14 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
   console.log(`[Diagnostics] BREVO_API_KEY present: ${process.env.BREVO_API_KEY ? 'YES (length: ' + process.env.BREVO_API_KEY.trim().length + ')' : 'NO'}`);
   console.log(`[Diagnostics] BREVO_KEY present: ${process.env.BREVO_KEY ? 'YES (length: ' + process.env.BREVO_KEY.trim().length + ')' : 'NO'}`);
   console.log(`[Diagnostics] SMTP_USER present: ${process.env.SMTP_USER ? 'YES' : 'NO'}`);
+  
+  // Find all keys in environment containing 'brevo', 'api', or 'key' to detect typos/spaces
+  const matchingEnvKeys = Object.keys(process.env).filter(k => 
+    k.toLowerCase().includes("brevo") || 
+    k.toLowerCase().includes("api") || 
+    k.toLowerCase().includes("key")
+  );
+  console.log(`[Diagnostics] Env keys matching 'brevo/api/key':`, matchingEnvKeys);
 
   if (brevoApiKey && brevoApiKey.trim()) {
     const activeKey = brevoApiKey.trim();
