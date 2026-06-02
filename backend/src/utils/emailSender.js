@@ -19,25 +19,61 @@ const createTransporter = () => {
 const FRONTEND_URL = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 
 /**
- * Generic email sending wrapper that tries Brevo HTTPS API first,
- * and falls back to Nodemailer SMTP.
+ * Generic email sending wrapper that tries Resend first,
+ * then Brevo HTTPS API, and falls back to Nodemailer SMTP.
  */
 const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
+  const resendApiKey = process.env.RESEND_API_KEY;
   const brevoApiKey = process.env.BREVO_API_KEY || process.env.BREVO_KEY;
 
   console.log(`📧 sendEmail wrapper invoked for recipient: ${toEmail}`);
-  console.log(`[Diagnostics] BREVO_API_KEY present: ${process.env.BREVO_API_KEY ? 'YES (length: ' + process.env.BREVO_API_KEY.trim().length + ')' : 'NO'}`);
-  console.log(`[Diagnostics] BREVO_KEY present: ${process.env.BREVO_KEY ? 'YES (length: ' + process.env.BREVO_KEY.trim().length + ')' : 'NO'}`);
+  console.log(`[Diagnostics] RESEND_API_KEY present: ${resendApiKey ? 'YES (length: ' + resendApiKey.trim().length + ')' : 'NO'}`);
+  console.log(`[Diagnostics] BREVO_API_KEY present: ${brevoApiKey ? 'YES (length: ' + brevoApiKey.trim().length + ')' : 'NO'}`);
   console.log(`[Diagnostics] SMTP_USER present: ${process.env.SMTP_USER ? 'YES' : 'NO'}`);
-  
-  // Find all keys in environment containing 'brevo', 'api', or 'key' to detect typos/spaces
+
+  // Find all keys in environment containing 'brevo', 'resend', 'api', or 'key' to detect typos/spaces
   const matchingEnvKeys = Object.keys(process.env).filter(k => 
     k.toLowerCase().includes("brevo") || 
+    k.toLowerCase().includes("resend") || 
     k.toLowerCase().includes("api") || 
     k.toLowerCase().includes("key")
   );
-  console.log(`[Diagnostics] Env keys matching 'brevo/api/key':`, matchingEnvKeys);
+  console.log(`[Diagnostics] Env keys matching 'brevo/resend/api/key':`, matchingEnvKeys);
 
+  // 1. TRY RESEND HTTPS API
+  if (resendApiKey && resendApiKey.trim()) {
+    const activeKey = resendApiKey.trim().replace(/^["']|["']$/g, "");
+    console.log(`[Diagnostics] Cleaned Resend key length: ${activeKey.length}`);
+    console.log(`📧 Attempting email delivery to ${toEmail} via Resend HTTP API...`);
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${activeKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Agro Billing SaaS <onboarding@resend.dev>',
+          to: [toEmail],
+          subject: subject,
+          html: htmlContent,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Resend HTTP error status ${response.status}: ${errText}`);
+      }
+
+      const data = await response.json();
+      console.log(`📧 Email delivered via Resend API successfully. Message ID: ${data.id}`);
+      return { messageId: data.id };
+    } catch (resendErr) {
+      console.error('📧 Resend API delivery failed. Attempting next fallback...', resendErr);
+    }
+  }
+
+  // 2. TRY BREVO HTTPS API
   if (brevoApiKey && brevoApiKey.trim()) {
     // Strip any leading/trailing quotes that might have been copied from a .env file
     const activeKey = brevoApiKey.trim().replace(/^["']|["']$/g, "");
@@ -45,8 +81,8 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
     // Print a safe preview to inspect the key prefix and suffix for correctness
     const prefix = activeKey.substring(0, 8);
     const suffix = activeKey.length > 12 ? activeKey.substring(activeKey.length - 4) : "";
-    console.log(`[Diagnostics] Cleaned key length: ${activeKey.length}`);
-    console.log(`[Diagnostics] Safe Key Preview: ${prefix}...${suffix}`);
+    console.log(`[Diagnostics] Cleaned Brevo key length: ${activeKey.length}`);
+    console.log(`[Diagnostics] Safe Brevo Key Preview: ${prefix}...${suffix}`);
     
     console.log(`📧 Attempting email delivery to ${toEmail} via Brevo HTTP API...`);
     try {
@@ -79,16 +115,15 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
       }
 
       const data = await response.json();
-      console.log(`📧 Email delivered via Brevo API. Message ID: ${data.messageId}`);
+      console.log(`📧 Email delivered via Brevo API successfully. Message ID: ${data.messageId}`);
       return { messageId: data.messageId };
     } catch (brevoErr) {
       console.error('📧 Brevo API delivery failed. Attempting SMTP fallback...', brevoErr);
     }
-  } else {
-    console.log(`⚠️ Brevo API Key not found in environment variables. Falling back to SMTP.`);
   }
 
-  // Fallback / Local development: SMTP via Nodemailer
+  // 3. FALLBACK / LOCAL DEVELOPMENT: SMTP via Nodemailer
+  console.log(`⚠️ No active Email API Key found or API delivery failed. Falling back to SMTP.`);
   console.log(`📧 Attempting email delivery to ${toEmail} via SMTP...`);
   const transporter = createTransporter();
   const mailOptions = {
