@@ -39,7 +39,15 @@ const sendEmail = async ({ toEmail, toName, subject, htmlContent }) => {
   console.log(`[Diagnostics] Env keys matching 'brevo/api/key':`, matchingEnvKeys);
 
   if (brevoApiKey && brevoApiKey.trim()) {
-    const activeKey = brevoApiKey.trim();
+    // Strip any leading/trailing quotes that might have been copied from a .env file
+    const activeKey = brevoApiKey.trim().replace(/^["']|["']$/g, "");
+    
+    // Print a safe preview to inspect the key prefix and suffix for correctness
+    const prefix = activeKey.substring(0, 8);
+    const suffix = activeKey.length > 12 ? activeKey.substring(activeKey.length - 4) : "";
+    console.log(`[Diagnostics] Cleaned key length: ${activeKey.length}`);
+    console.log(`[Diagnostics] Safe Key Preview: ${prefix}...${suffix}`);
+    
     console.log(`📧 Attempting email delivery to ${toEmail} via Brevo HTTP API...`);
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
