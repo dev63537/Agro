@@ -26,5 +26,6 @@ const PORT = process.env.PORT || 4000;
     });
   } catch (err) {
     console.error("❌ Server startup failed", err);
+    process.exit(1);
   }
 })();
