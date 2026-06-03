@@ -147,7 +147,7 @@ export default function ShopSettings() {
   /* Populate form when data arrives */
   useEffect(() => {
     if (!data) return;
-    const s = data.settings ?? data; // handle either { settings: {} } or flat
+    const s = data.shop ?? data.settings ?? data; // handle either { shop: {} }, { settings: {} } or flat
     setForm({
       ownerName: s.ownerName ?? "",
       businessPhone: s.businessPhone ?? "",
@@ -212,7 +212,7 @@ export default function ShopSettings() {
   }
 
   /* ── Subscription info from data ── */
-  const sub = data?.subscription ?? data?.settings?.subscription ?? data?.plan ?? null;
+  const sub = data?.shop ?? data?.subscription ?? data?.settings?.subscription ?? data?.plan ?? null;
 
   /* ── Render ── */
   return (
