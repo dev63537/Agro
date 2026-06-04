@@ -149,14 +149,14 @@ export default function ShopSettings() {
     if (!data) return;
     const s = data.shop ?? data.settings ?? data; // handle either { shop: {} }, { settings: {} } or flat
     setForm({
-      ownerName: s.ownerName ?? "",
-      businessPhone: s.businessPhone ?? "",
-      businessEmail: s.businessEmail ?? "",
-      businessAddress: s.businessAddress ?? "",
-      invoicePrefix: s.invoicePrefix ?? "",
-      gstNumber: s.gstNumber ?? "",
-      gstPercent: s.gstPercent ?? "",
-      invoiceFooter: s.invoiceFooter ?? "",
+      ownerName: s.ownerName || "",
+      businessPhone: s.businessPhone || s.phone || "",
+      businessEmail: s.businessEmail || s.email || "",
+      businessAddress: s.businessAddress || s.address || "",
+      invoicePrefix: s.invoicePrefix || "",
+      gstNumber: s.gstNumber || "",
+      gstPercent: s.gstPercent !== undefined && s.gstPercent !== null ? s.gstPercent : "",
+      invoiceFooter: s.invoiceFooter || "",
     });
   }, [data]);
 
