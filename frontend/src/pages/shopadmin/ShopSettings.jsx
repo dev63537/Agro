@@ -132,6 +132,7 @@ export default function ShopSettings() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [saved, setSaved] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   /* ── Fetch settings ── */
   const { data, isLoading, isError } = useQuery({
@@ -549,6 +550,13 @@ export default function ShopSettings() {
 
           {/* ── Bottom Save Bar ── */}
           <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-surface-200 shadow-sm">
+            <button
+              type="button"
+              className="text-xs text-secondary-400 hover:text-secondary-600 underline"
+              onClick={() => setShowDebug(!showDebug)}
+            >
+              {showDebug ? "Hide Debug Info" : "Show Debug Info"}
+            </button>
             <p className="text-sm text-secondary-500">
               {mutation.isPending
                 ? "Saving your changes…"
@@ -590,6 +598,18 @@ export default function ShopSettings() {
               )}
             </button>
           </div>
+          {showDebug && (
+            <div className="card mt-6 bg-surface-50 border border-surface-200">
+              <div className="card-body">
+                <h3 className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-2">
+                  Debug: Shop Settings API Response
+                </h3>
+                <pre className="text-xs bg-white p-3 rounded-lg border border-surface-200 overflow-auto max-h-60 font-mono text-secondary-800">
+                  {JSON.stringify({ data, form }, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
         </form>
       )}
     </div>
