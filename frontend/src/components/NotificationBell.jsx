@@ -53,7 +53,7 @@ function NotificationItem({ notification, onClose }) {
   const queryClient = useQueryClient();
 
   const markReadMutation = useMutation({
-    mutationFn: (id) => api.post(`/api/notifications/${id}/read`),
+    mutationFn: (id) => api.post(`/notifications/${id}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -108,7 +108,7 @@ export default function NotificationBell() {
   // ── Fetch notifications every 30s ──────────────────────────────────────────
   const { data, isLoading } = useQuery({
     queryKey: ['notifications'],
-    queryFn: () => api.get('/api/notifications').then((res) => res.data),
+    queryFn: () => api.get('/notifications').then((res) => res.data),
     refetchInterval: 30000,
     refetchIntervalInBackground: false,
   });
@@ -118,7 +118,7 @@ export default function NotificationBell() {
 
   // ── Mark all read ──────────────────────────────────────────────────────────
   const markAllReadMutation = useMutation({
-    mutationFn: () => api.post('/api/notifications/read-all'),
+    mutationFn: () => api.post('/notifications/read-all'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       showSuccess('All notifications marked as read');

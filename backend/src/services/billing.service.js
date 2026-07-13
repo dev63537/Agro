@@ -187,8 +187,9 @@ exports.createBill = async ({
 
       await consumeStock(shop._id, product._id, it.qty);
 
+      const gstPercentVal = product.gstPercent || 0;
       const amount = it.qty * product.price;
-      const gst = (amount * product.gstPercent) / 100;
+      const gst = (amount * gstPercentVal) / 100;
 
       subTotal += amount;
       gstTotal += gst;
@@ -198,7 +199,7 @@ exports.createBill = async ({
         name: product.name,
         qty: it.qty,
         unitPrice: product.price,
-        gstPercent: product.gstPercent,
+        gstPercent: gstPercentVal,
         total: amount + gst,
       });
     }
