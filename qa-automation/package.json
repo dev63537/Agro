@@ -1,0 +1,12 @@
+{
+  "name": "agro-qa-automation",
+  "version": "1.0.0",
+  "description": "QA Automation for Agro Billing SaaS",
+  "main": "run-qa.js",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongodb-memory-server": "^11.2.0",
+    "mongoose": "^7.8.8",
+    "playwright": "^1.49.0"
+  }
+}
